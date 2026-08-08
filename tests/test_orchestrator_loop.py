@@ -7,11 +7,11 @@ from forgeos.core.orchestrator import Orchestrator
 def test_one_cycle_writes_report(workspace: Path) -> None:
     ws.create_project(workspace, "loop")
     orch = Orchestrator(workspace, "loop", role_id="ceo")
-    result = orch.run_once(goal="write hello")
-    assert result.ok
+    batch = orch.run_steps(goal="write hello", steps=2)
+    assert batch.ok
     hello = ws.project_root(workspace, "loop") / ".forge" / "reports" / "hello.md"
     assert hello.exists()
     assert hello.read_text(encoding="utf-8")
-    assert result.report_path is not None
-    assert result.report_path.exists()
+    assert batch.cycles[-1].report_path is not None
+    assert batch.cycles[-1].report_path.exists()
     assert orch.llm.call_count == 1

@@ -16,6 +16,7 @@ from forgeos.llm.context_manager import ContextManager
 from forgeos.llm.mock import MockLLM
 from forgeos.llm.model_router import DEFAULT_ROUTING, ModelRouter, RoutedLLM
 from forgeos.llm.ollama_client import OllamaClient, default_host
+from forgeos.planning.task_graph import TaskGraph
 from forgeos.roles.loader import load_role
 from forgeos.tools.registry import default_tool_ids
 
@@ -33,6 +34,19 @@ def _build_llm(kind: str, task_class: str = "planning") -> tuple[LLMClient, bool
         router = ModelRouter(client)
         return RoutedLLM(router, task_class=task_class), True
     raise ValueError(f"unknown llm backend: {kind}")
+
+
+def _make_orch(workspace: Path, name: str, args: argparse.Namespace) -> Orchestrator:
+    llm, use_context = _build_llm(args.llm, task_class="planning")
+    project = ws.project_root(workspace, name)
+    return Orchestrator(
+        workspace,
+        name,
+        role_id=getattr(args, "role", "ceo"),
+        llm=llm,
+        context=ContextManager(project_root=project),
+        use_context=use_context,
+    )
 
 
 def cmd_init(args: argparse.Namespace) -> int:
@@ -80,35 +94,73 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     goal = args.goal or "Phase 1 stub: write hello report"
     try:
-        llm, use_context = _build_llm(args.llm, task_class="planning")
+        orch = _make_orch(workspace, args.name, args)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    orch = Orchestrator(
-        workspace,
-        args.name,
-        role_id=args.role,
-        llm=llm,
-        context=ContextManager(project_root=project),
-        use_context=use_context,
-    )
     try:
-        result = orch.run_once(goal=goal)
+        steps = int(args.steps)
+        if steps <= 1:
+            result = orch.run_once(goal=goal)
+            print(result.message)
+            print(f"task: {result.task_id}")
+            if result.report_path:
+                print(f"report: {result.report_path}")
+            for item in result.evidence:
+                print(f"  {item}")
+            return 0 if result.ok else 1
+        batch = orch.run_steps(goal=goal, steps=steps)
+        print(batch.message)
+        for cycle in batch.cycles:
+            print(f"- {cycle.task_id or '(none)'}: {cycle.message} ok={cycle.ok}")
+        return 0 if batch.ok else 1
     except LLMError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    print(result.message)
-    print(f"task: {result.task_id}")
-    if result.report_path:
-        print(f"report: {result.report_path}")
-    for item in result.evidence:
-        print(f"  {item}")
-    return 0 if result.ok else 1
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    goal = args.goal or "Phase 4 plan"
+    try:
+        orch = _make_orch(workspace, args.name, args)
+        graph = orch.ensure_plan(goal, force=bool(args.force))
+    except (ValueError, LLMError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    print(f"goal: {goal}")
+    print(f"tasks: {len(graph.tasks)}")
+    for task in graph.tasks:
+        deps = ",".join(task.dependencies) if task.dependencies else "-"
+        print(f"  {task.id}\t{task.status}\trole={task.role}\tpri={task.priority}\tdeps={deps}")
+    return 0
+
+
+def cmd_tasks_list(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    graph = TaskGraph.load(ws.tasks_path(project))
+    if not graph.tasks:
+        print("(no tasks)")
+        return 0
+    for task in graph.tasks:
+        deps = ",".join(task.dependencies) if task.dependencies else "-"
+        print(
+            f"{task.id}\t{task.status}\trole={task.role}\t"
+            f"pri={task.priority}\tdeps={deps}\tattempts={task.attempts}"
+        )
+    return 0
 
 
 def _tool_demo(workspace: Path, name: str, role_id: str) -> int:
     project = ws.project_root(workspace, name)
-    # Default ceo lacks terminal/git; smoke uses backend unless caller overrides.
     if role_id == "ceo":
         role_id = "backend"
     role = load_role(workspace, role_id)
@@ -171,7 +223,7 @@ def cmd_llm_status(_args: argparse.Namespace) -> int:
     try:
         models = client.list_models()
     except LLMError as exc:
-        print(f"reachable: false")
+        print("reachable: false")
         print(f"error: {exc}", file=sys.stderr)
         return 1
     print("reachable: true")
@@ -210,22 +262,37 @@ def build_parser() -> argparse.ArgumentParser:
     p_status.add_argument("name", help="project name")
     p_status.set_defaults(func=cmd_status)
 
-    p_run = sub.add_parser("run", help="run one PLAN-ACT-OBSERVE-VERIFY cycle")
+    p_run = sub.add_parser("run", help="run PLAN-ACT-OBSERVE-VERIFY cycle(s)")
     p_run.add_argument("name", help="project name")
-    p_run.add_argument("--goal", default=None, help="goal text for the stub planner")
-    p_run.add_argument("--role", default="ceo", help="role policy id (default: ceo)")
+    p_run.add_argument("--goal", default=None, help="goal text for the planner")
+    p_run.add_argument("--role", default="ceo", help="fallback role id (default: ceo)")
     p_run.add_argument(
         "--llm",
         choices=("mock", "ollama"),
         default="mock",
         help="LLM backend (default: mock)",
     )
+    p_run.add_argument("--steps", type=int, default=1, help="max schedule cycles (default: 1)")
     p_run.add_argument(
         "--tool-demo",
         action="store_true",
-        help="smoke terminal.execute + git.status instead of stub planner cycle",
+        help="smoke terminal.execute + git.status instead of planner cycle",
     )
     p_run.set_defaults(func=cmd_run)
+
+    p_plan = sub.add_parser("plan", help="build or refresh the task graph")
+    p_plan.add_argument("name", help="project name")
+    p_plan.add_argument("--goal", default=None, help="goal text")
+    p_plan.add_argument("--role", default="ceo", help="role used for context")
+    p_plan.add_argument("--llm", choices=("mock", "ollama"), default="mock")
+    p_plan.add_argument("--force", action="store_true", help="replace existing graph")
+    p_plan.set_defaults(func=cmd_plan)
+
+    p_tasks = sub.add_parser("tasks", help="inspect task graph")
+    tasks_sub = p_tasks.add_subparsers(dest="tasks_command")
+    p_tasks_list = tasks_sub.add_parser("list", help="list tasks")
+    p_tasks_list.add_argument("name", help="project name")
+    p_tasks_list.set_defaults(func=cmd_tasks_list)
 
     p_tools = sub.add_parser("tools", help="inspect and execute tools")
     tools_sub = p_tools.add_subparsers(dest="tools_command")
@@ -275,6 +342,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "llm" and not getattr(args, "llm_command", None):
         parser.parse_args(["llm", "--help"])
+        return 0
+    if args.command == "tasks" and not getattr(args, "tasks_command", None):
+        parser.parse_args(["tasks", "--help"])
         return 0
     return int(args.func(args))
 

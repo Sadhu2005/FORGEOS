@@ -21,6 +21,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/PHASE1.md](docs/PHASE1.md) | Phase 1 what shipped / deferred |
 | [docs/PHASE2.md](docs/PHASE2.md) | Phase 2 tool engine what shipped / deferred |
 | [docs/PHASE3.md](docs/PHASE3.md) | Phase 3 LLM engine what shipped / deferred |
+| [docs/PHASE4.md](docs/PHASE4.md) | Phase 4 planning what shipped / deferred |
 | [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
@@ -32,7 +33,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 benchmark + Phase 1–3 CLI (`forgeos init|run|status|tools|llm`). Default `run` uses MockLLM; pass `--llm ollama` for the local model path.
+**Runnable today:** Phase 0 benchmark + Phase 1–4 CLI (`forgeos init|run|status|tools|llm|plan|tasks`). Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -78,6 +79,14 @@ forgeos run demo --llm ollama --goal "write hello report"
 ```
 
 Requires [Ollama](https://ollama.com) on the host with `qwen3:4b` and `qwen2.5-coder:7b` pulled (see [docs/MODEL_ROUTING.md](docs/MODEL_ROUTING.md)).
+
+## Phase 4 — Planning CLI
+
+```powershell
+forgeos plan demo --goal "ship phase4"
+forgeos tasks list demo
+forgeos run demo --steps 2 --goal "ship phase4"
+```
 
 ## Phase 0 — Benchmark
 

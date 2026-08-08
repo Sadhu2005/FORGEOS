@@ -1,8 +1,8 @@
-"""Orchestrator: one PLAN → ACT → OBSERVE → VERIFY cycle."""
+"""Orchestrator: PLAN → schedule → ACT → OBSERVE → VERIFY (+ replan)."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -13,7 +13,9 @@ from forgeos.core.verifier import Verifier
 from forgeos.llm.base import LLMClient
 from forgeos.llm.context_manager import ContextManager
 from forgeos.llm.mock import MockLLM
-from forgeos.planning.planner import PlannerStub
+from forgeos.planning.planner import HierarchicalPlanner
+from forgeos.planning.replan import Replanner
+from forgeos.planning.scheduler import Scheduler
 from forgeos.planning.task_graph import TaskGraph
 from forgeos.roles.loader import RolePolicy, load_role
 
@@ -28,6 +30,13 @@ class CycleResult:
     message: str
 
 
+@dataclass
+class StepsResult:
+    ok: bool
+    cycles: list[CycleResult] = field(default_factory=list)
+    message: str = ""
+
+
 class Orchestrator:
     def __init__(
         self,
@@ -37,6 +46,7 @@ class Orchestrator:
         llm: LLMClient | None = None,
         context: ContextManager | None = None,
         use_context: bool = False,
+        max_attempts: int = 3,
     ) -> None:
         self.workspace = workspace.resolve()
         self.project_name = project_name
@@ -45,6 +55,9 @@ class Orchestrator:
         self.llm = llm or MockLLM()
         self.context = context or ContextManager(project_root=self.project)
         self.use_context = use_context
+        self.planner = HierarchicalPlanner(self.llm)
+        self.scheduler = Scheduler()
+        self.replanner = Replanner(max_attempts=max_attempts)
         self._llm_guard = False
 
     def _with_llm_guard(self, fn):
@@ -56,25 +69,52 @@ class Orchestrator:
         finally:
             self._llm_guard = False
 
-    def run_once(self, goal: str = "Phase 1 stub: write hello report") -> CycleResult:
-        state = ws.load(self.project)
+    def ensure_plan(self, goal: str, *, force: bool = False) -> TaskGraph:
         graph = TaskGraph.load(ws.tasks_path(self.project))
         role = load_role(self.workspace, self.role_id)
-
-        planner = PlannerStub(self.llm)
         prompt = None
         if self.use_context:
             prompt = self.context.build(
                 goal=goal,
                 role_id=role.id,
                 allowed_tools=list(role.allowed_tools),
-                extra="Produce a short plan acknowledgment; tools will execute a stub write.",
+                extra=(
+                    "Return JSON tasks with filesystem.write actions under .forge/reports/ "
+                    "when possible."
+                ),
             )
 
         def _plan():
-            return planner.plan(goal, graph, prompt=prompt)
+            return self.planner.ensure_plan(goal, graph, prompt=prompt, force=force)
 
-        task = self._with_llm_guard(_plan)
+        self._with_llm_guard(_plan)
+        graph.save(ws.tasks_path(self.project))
+        return graph
+
+    def run_once(self, goal: str = "Phase 1 stub: write hello report") -> CycleResult:
+        state = ws.load(self.project)
+        graph = TaskGraph.load(ws.tasks_path(self.project))
+
+        if not graph.tasks:
+            self.ensure_plan(goal)
+            graph = TaskGraph.load(ws.tasks_path(self.project))
+
+        task = self.scheduler.next_task(graph)
+        if task is None:
+            counts = graph.update_counts()
+            state["tasks"] = counts
+            ws.save(self.project, state)
+            graph.save(ws.tasks_path(self.project))
+            return CycleResult(
+                True,
+                self.project,
+                "",
+                None,
+                [],
+                "no READY tasks",
+            )
+
+        role = load_role(self.workspace, task.role or self.role_id)
         task.status = "RUNNING"
         graph.save(ws.tasks_path(self.project))
 
@@ -83,10 +123,20 @@ class Orchestrator:
         self._assert_tool_allowed(role, task.action.get("tool", ""))
         exec_result = executor.execute(task.action)
         if not exec_result.ok:
-            task.status = "FAILED"
+            replan = self.replanner.on_failure(graph, task, exec_result.detail)
+            counts = graph.update_counts()
+            state["tasks"] = counts
+            ws.save(self.project, state)
             graph.save(ws.tasks_path(self.project))
-            report = self._write_report(goal, task.id, False, [exec_result.detail], role)
-            return CycleResult(False, self.project, task.id, report, [exec_result.detail], exec_result.detail)
+            report = self._write_report(goal, task.id, False, [exec_result.detail, replan.message], role)
+            return CycleResult(
+                False,
+                self.project,
+                task.id,
+                report,
+                [exec_result.detail],
+                replan.message,
+            )
 
         observer = Observer(fs)
         rel_path = str(task.action.get("path", ""))
@@ -100,17 +150,34 @@ class Orchestrator:
             task.status = "COMPLETED"
             task.artifacts = [rel_path]
             message = "cycle completed"
+            evidence = list(verify.evidence)
         else:
-            task.status = "FAILED"
-            message = "; ".join(verify.failures)
+            replan = self.replanner.on_failure(graph, task, "; ".join(verify.failures))
+            message = replan.message
+            evidence = list(verify.evidence) + list(verify.failures)
 
         counts = graph.update_counts()
         state["tasks"] = counts
         ws.save(self.project, state)
         graph.save(ws.tasks_path(self.project))
 
-        report = self._write_report(goal, task.id, verify.ok, verify.evidence + verify.failures, role)
-        return CycleResult(verify.ok, self.project, task.id, report, task.evidence, message)
+        report = self._write_report(goal, task.id, verify.ok, evidence, role)
+        return CycleResult(verify.ok, self.project, task.id, report, evidence, message)
+
+    def run_steps(self, goal: str, steps: int = 1) -> StepsResult:
+        cycles: list[CycleResult] = []
+        for _ in range(max(1, steps)):
+            graph = TaskGraph.load(ws.tasks_path(self.project))
+            if any(t.status == "BLOCKED" for t in graph.tasks):
+                return StepsResult(False, cycles, "blocked for human review")
+            result = self.run_once(goal=goal)
+            cycles.append(result)
+            if result.task_id == "" and result.message == "no READY tasks":
+                return StepsResult(True, cycles, "all scheduled work done")
+            if not result.ok and "blocked" in result.message.lower():
+                return StepsResult(False, cycles, result.message)
+        ok = all(c.ok or c.task_id == "" for c in cycles)
+        return StepsResult(ok, cycles, f"completed {len(cycles)} cycle(s)")
 
     def _assert_tool_allowed(self, role: RolePolicy, tool: str) -> None:
         if tool and tool not in role.allowed_tools:

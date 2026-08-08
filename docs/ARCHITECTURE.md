@@ -127,7 +127,7 @@ Full permissions and handoffs: [ROLES.md](ROLES.md). End-to-end flow: [WORKFLOW.
 | **FORGEOS engine** | Orchestrator, planner, tools, role policies, benchmarks — this repo |
 | **Managed project** | App monorepo (`frontend/`, `backend/`, `database/`, `docker/`, `docs/`, `.forge/`) that FORGEOS creates and drives |
 
-**Runnable today:** Phase 0 benchmark + Phase 1–2 CLI/tools + Phase 3 Ollama path (`forgeos run --llm ollama`, `forgeos llm …`). See [PHASE3.md](PHASE3.md).
+**Runnable today:** Phase 0 benchmark + Phase 1–4 CLI/tools/LLM/planning (`forgeos plan`, `run --steps`). See [PHASE4.md](PHASE4.md).
 
 ## Related documents
 

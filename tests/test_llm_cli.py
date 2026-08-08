@@ -30,8 +30,8 @@ def test_llm_complete_mocked(workspace: Path, capsys) -> None:
 
 def test_run_default_still_mock(workspace: Path, capsys) -> None:
     assert main(["init", "llm-demo"]) == 0
-    assert main(["run", "llm-demo", "--llm", "mock", "--goal", "hello"]) == 0
+    assert main(["run", "llm-demo", "--llm", "mock", "--goal", "hello", "--steps", "2"]) == 0
     out = capsys.readouterr().out
-    assert "cycle completed" in out or "task:" in out
+    assert "cycle completed" in out or "task:" in out or "completed" in out
     hello = ws.project_root(workspace, "llm-demo") / ".forge" / "reports" / "hello.md"
     assert hello.exists()

@@ -1,45 +1,165 @@
-"""Phase 1 planner stub — one write-file READY task via LLMClient."""
+"""Hierarchical planner — multi-task graphs with dependency template fallback."""
 
 from __future__ import annotations
 
+import json
+import re
+from typing import Any
+
 from forgeos.llm.base import LLMClient
 from forgeos.llm.mock import MockLLM
+from forgeos.planning.scheduler import Scheduler
 from forgeos.planning.task_graph import Task, TaskGraph
 
 
-class PlannerStub:
-    def __init__(self, llm: LLMClient | None = None) -> None:
-        self.llm = llm or MockLLM()
-
-    def plan(self, goal: str, graph: TaskGraph, prompt: str | None = None) -> Task:
-        """Ask LLM for a plan and add a single READY filesystem.write task."""
-        _ = self.llm.complete(prompt or f"plan:{goal}")
-        task = Task(
+def default_template(goal: str) -> list[Task]:
+    """Locked Phase 4 demo: phase.md then hello.md under .forge/reports/."""
+    return [
+        Task(
             id="task-001",
-            description=f"Write report for goal: {goal}",
+            description=f"Write phase note for goal: {goal}",
             status="READY",
             role="ceo",
             priority=10,
-            verification=[
-                "file exists",
-                "file is non-empty",
-            ],
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": ".forge/reports/phase.md",
+                "content": (
+                    f"# FORGEOS Phase 4 plan note\n\nGoal: {goal}\n\n"
+                    "Status: phase recorded.\n"
+                ),
+            },
+        ),
+        Task(
+            id="task-002",
+            description=f"Write hello report for goal: {goal}",
+            status="PROPOSED",
+            role="ceo",
+            priority=20,
+            dependencies=["task-001"],
+            verification=["file exists", "file is non-empty"],
             action={
                 "tool": "filesystem.write",
                 "path": ".forge/reports/hello.md",
                 "content": (
-                    f"# FORGEOS Phase 1 stub report\n\nGoal: {goal}\n\n"
+                    f"# FORGEOS Phase 4 stub report\n\nGoal: {goal}\n\n"
                     "Status: cycle completed.\n"
                 ),
             },
+        ),
+    ]
+
+
+def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
+    text = text.strip()
+    if not text:
+        return None
+    try:
+        data = json.loads(text)
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict) and isinstance(data.get("tasks"), list):
+            return data["tasks"]
+    except json.JSONDecodeError:
+        pass
+    match = re.search(r"\[[\s\S]*\]", text)
+    if not match:
+        return None
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, list) else None
+
+
+def tasks_from_llm_json(raw: list[dict[str, Any]], goal: str) -> list[Task] | None:
+    if not raw:
+        return None
+    tasks: list[Task] = []
+    for i, item in enumerate(raw):
+        if not isinstance(item, dict):
+            return None
+        tid = str(item.get("id") or f"task-{i+1:03d}")
+        action = item.get("action")
+        if not isinstance(action, dict) or not action.get("tool"):
+            return None
+        status = str(item.get("status") or ("READY" if i == 0 else "PROPOSED"))
+        if status not in (
+            "PROPOSED",
+            "READY",
+            "WAITING",
+            "BLOCKED",
+            "FAILED",
+            "COMPLETED",
+            "REJECTED",
+            "CANCELLED",
+            "RUNNING",
+            "VERIFYING",
+        ):
+            status = "PROPOSED" if i else "READY"
+        tasks.append(
+            Task(
+                id=tid,
+                description=str(item.get("description") or f"Task for {goal}"),
+                status=status,
+                role=str(item.get("role") or "ceo"),
+                priority=int(item.get("priority") or (10 * (i + 1))),
+                dependencies=list(item.get("dependencies") or []),
+                verification=list(item.get("verification") or ["file exists", "file is non-empty"]),
+                action=dict(action),
+            )
         )
-        if graph.get(task.id) is None:
-            graph.add(task)
-        else:
-            existing = graph.get(task.id)
-            assert existing is not None
-            existing.status = "READY"
-            existing.action = task.action
-            existing.verification = task.verification
-            existing.description = task.description
-        return task
+    if not any(t.status == "READY" for t in tasks):
+        tasks[0].status = "READY"
+    return tasks
+
+
+class HierarchicalPlanner:
+    def __init__(self, llm: LLMClient | None = None) -> None:
+        self.llm = llm or MockLLM()
+        self.scheduler = Scheduler()
+
+    def ensure_plan(
+        self,
+        goal: str,
+        graph: TaskGraph,
+        *,
+        prompt: str | None = None,
+        force: bool = False,
+    ) -> TaskGraph:
+        if graph.tasks and not force:
+            return graph
+        if force:
+            graph.tasks.clear()
+
+        llm_text = self.llm.complete(
+            prompt
+            or (
+                "Return a JSON array of tasks with id, description, status, role, "
+                f"priority, dependencies, verification, action. Goal: {goal}"
+            )
+        )
+        parsed = _extract_json_array(llm_text)
+        built = tasks_from_llm_json(parsed, goal) if parsed else None
+        for task in built or default_template(goal):
+            if graph.get(task.id) is None:
+                graph.add(task)
+        return graph
+
+    def plan(self, goal: str, graph: TaskGraph, prompt: str | None = None) -> Task:
+        """Back-compat: ensure plan exists, then return next scheduled task."""
+        self.ensure_plan(goal, graph, prompt=prompt)
+        nxt = self.scheduler.next_task(graph)
+        if nxt is None:
+            # All done or empty — re-seed template if empty
+            if not graph.tasks:
+                self.ensure_plan(goal, graph, prompt=prompt, force=True)
+                nxt = self.scheduler.next_task(graph)
+        if nxt is None:
+            raise RuntimeError("planner: no READY task available")
+        return nxt
+
+
+class PlannerStub(HierarchicalPlanner):
+    """Thin alias kept for Phase 1–3 imports."""

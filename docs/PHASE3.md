@@ -19,7 +19,7 @@ Branch (during development): `feature/phase3-llm-engine`
 
 | Capability | Phase |
 |---|---|
-| Hierarchical planner / replan / next-task selection | 4 |
+| Hierarchical planner / replan / next-task selection | **4 (shipped in `v0.5.0` — see [PHASE4.md](PHASE4.md))** |
 | Rich verification / failure taxonomy | 5 |
 | SQLite memory | 6 |
 | Approval gates / audit / git checkpoint | 7 |

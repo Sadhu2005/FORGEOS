@@ -22,7 +22,7 @@ Branch (during development): `feature/phase2-tool-engine`
 | Capability | Phase |
 |---|---|
 | Ollama client + model router | **3 (shipped in `v0.4.0` — see [PHASE3.md](PHASE3.md))** |
-| Real hierarchical planner / replan | 4 |
+| Real hierarchical planner / replan | **4 (shipped in `v0.5.0`)** |
 | Rich verification / failure taxonomy | 5 |
 | SQLite memory | 6 |
 | Approval gates / audit / git checkpoint; `docker compose up` / CRITICAL UI | 7 |
