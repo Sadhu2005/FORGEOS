@@ -11,7 +11,8 @@ FORGEOS/
 │   │   ├── orchestrator.py
 │   │   ├── observer.py
 │   │   ├── executor.py
-│   │   └── verifier.py
+│   │   ├── verifier.py
+│   │   └── classifier.py
 │   ├── planning/
 │   │   ├── planner.py
 │   │   ├── task_graph.py
@@ -61,7 +62,7 @@ FORGEOS/
 | `forgeos.tools` (registry, terminal, git, testing, docker) | 2 | **Present** (`v0.3.0`) |
 | `forgeos.llm` (Ollama, router, context) | 3 | **Present** (`v0.4.0`) |
 | `forgeos.planning` (scheduler, hierarchical planner, replan) | 4 | **Present** (`v0.5.0`) |
-| Verification depth in `core.verifier` | 5 | Pending (basic verifier in Phase 1) |
+| `forgeos.core.verifier` + `classifier` | 5 | **Present** (`v0.6.0`) |
 | `forgeos.memory` | 6 | Pending |
 | `forgeos.safety` | 7 | Pending |
 | Engineering intelligence extras | 8 | Pending |

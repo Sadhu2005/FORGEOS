@@ -1,0 +1,39 @@
+# Verify result / evidence bundle (Phase 5+)
+
+type: object
+required:
+  - task_id
+  - ok
+  - checks
+  - evidence
+  - failures
+properties:
+  task_id:
+    type: string
+  ok:
+    type: boolean
+  checks:
+    type: object
+    additionalProperties:
+      type: boolean
+  evidence:
+    type: array
+    items:
+      type: string
+  failures:
+    type: array
+    items:
+      type: string
+  observation_notes:
+    type: array
+    items:
+      type: string
+  path:
+    type: string
+  exit_code:
+    type: ["integer", "null"]
+  stdout_tail:
+    type: string
+  failure_class:
+    type: string
+additionalProperties: true
