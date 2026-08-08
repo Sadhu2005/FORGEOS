@@ -1,0 +1,57 @@
+# FORGEOS memory SQLite contract (Phase 6)
+# Path: projects/<name>/.forge/memory.sqlite
+# Engine uses stdlib sqlite3; YAML world state remains authoritative for planner load.
+
+tables:
+  project_meta:
+    primary_key: name
+    columns:
+      name: { type: TEXT, required: true }
+      phase: { type: TEXT }
+      status: { type: TEXT }
+      updated_at: { type: TEXT, format: date-time }
+
+  tasks:
+    primary_key: id
+    columns:
+      id: { type: TEXT, required: true }
+      description: { type: TEXT }
+      status: { type: TEXT }
+      role: { type: TEXT }
+      priority: { type: INTEGER }
+      dependencies_json: { type: TEXT, notes: "JSON array of task ids" }
+      action_json: { type: TEXT, notes: "JSON object tool action" }
+      verification_json: { type: TEXT, notes: "JSON array of DoD strings" }
+      attempts: { type: INTEGER }
+      last_error: { type: TEXT }
+      updated_at: { type: TEXT, format: date-time }
+
+  decisions:
+    primary_key: id
+    align: docs/schemas/decision.schema.yaml
+    columns:
+      id: { type: TEXT, required: true }
+      problem: { type: TEXT, required: true }
+      options_json: { type: TEXT, notes: "JSON array" }
+      chosen: { type: TEXT, required: true }
+      confidence: { type: TEXT, enum: [HIGH, MEDIUM, LOW] }
+      risk: { type: TEXT }
+      reason: { type: TEXT }
+      evidence_json: { type: TEXT, notes: "JSON array of strings" }
+      timestamp: { type: TEXT, format: date-time }
+
+  events:
+    primary_key: id
+    columns:
+      id: { type: TEXT, required: true }
+      task_id: { type: TEXT }
+      kind:
+        type: TEXT
+        enum: [cycle, verify, replan, classify]
+      payload_json: { type: TEXT, notes: "JSON object" }
+      created_at: { type: TEXT, format: date-time }
+
+notes:
+  - Dual-write: orchestrator syncs YAML → SQLite after plan/run; does not replace state.yaml/tasks.yaml.
+  - No cross-project database in Phase 6.
+  - Approval/audit tables deferred to Phase 7.

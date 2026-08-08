@@ -19,6 +19,8 @@ from forgeos.llm.context_manager import ContextManager
 from forgeos.llm.mock import MockLLM
 from forgeos.llm.model_router import DEFAULT_ROUTING, ModelRouter, RoutedLLM
 from forgeos.llm.ollama_client import OllamaClient, default_host
+from forgeos.memory.database import memory_path
+from forgeos.memory.repository import Repository
 from forgeos.planning.task_graph import TaskGraph
 from forgeos.roles.loader import load_role
 from forgeos.tools.registry import default_tool_ids
@@ -291,6 +293,70 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 0 if verify.ok else 1
 
 
+def cmd_memory_status(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    repo = Repository(project)
+    if not repo.db_path.exists():
+        try:
+            repo.sync_from_yaml()
+        except FileNotFoundError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    counts = repo.counts()
+    print(f"db: {memory_path(project)}")
+    print(f"project_meta: {counts['project_meta']}")
+    print(f"tasks: {counts['tasks']}")
+    print(f"decisions: {counts['decisions']}")
+    print(f"events: {counts['events']}")
+    return 0
+
+
+def cmd_memory_decisions(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    repo = Repository(project)
+    if not repo.db_path.exists():
+        print("(no memory database; run: forgeos memory sync <project>)")
+        return 0
+    decisions = repo.list_decisions(limit=int(args.limit))
+    if not decisions:
+        print("(no decisions)")
+        return 0
+    for d in decisions:
+        print(
+            f"{d.get('id')}\t{d.get('timestamp')}\tchosen={d.get('chosen')}\t"
+            f"confidence={d.get('confidence')}\t{d.get('problem')}"
+        )
+    return 0
+
+
+def cmd_memory_sync(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    repo = Repository(project)
+    try:
+        repo.sync_from_yaml()
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    counts = repo.counts()
+    print(f"synced: {memory_path(project)}")
+    print(
+        f"tasks={counts['tasks']} decisions={counts['decisions']} events={counts['events']}"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forgeos",
@@ -384,6 +450,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_verify.add_argument("--task", required=True, help="task id")
     p_verify.set_defaults(func=cmd_verify)
 
+    p_memory = sub.add_parser("memory", help="inspect project SQLite memory")
+    memory_sub = p_memory.add_subparsers(dest="memory_command")
+
+    p_mem_status = memory_sub.add_parser("status", help="show sqlite path and row counts")
+    p_mem_status.add_argument("name", help="project name")
+    p_mem_status.set_defaults(func=cmd_memory_status)
+
+    p_mem_decisions = memory_sub.add_parser("decisions", help="list recent decisions")
+    p_mem_decisions.add_argument("name", help="project name")
+    p_mem_decisions.add_argument("--limit", type=int, default=20, help="max rows (default: 20)")
+    p_mem_decisions.set_defaults(func=cmd_memory_decisions)
+
+    p_mem_sync = memory_sub.add_parser("sync", help="force YAML → SQLite sync")
+    p_mem_sync.add_argument("name", help="project name")
+    p_mem_sync.set_defaults(func=cmd_memory_sync)
+
     return parser
 
 
@@ -401,6 +483,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "tasks" and not getattr(args, "tasks_command", None):
         parser.parse_args(["tasks", "--help"])
+        return 0
+    if args.command == "memory" and not getattr(args, "memory_command", None):
+        parser.parse_args(["memory", "--help"])
         return 0
     return int(args.func(args))
 

@@ -9,12 +9,12 @@
 | 3 LLM engine | `feature/phase3-llm-engine` | `v0.4.0` | **Shipped** — see [PHASE3.md](PHASE3.md) |
 | 4 Planning | `feature/phase4-planning` | `v0.5.0` | **Shipped** — see [PHASE4.md](PHASE4.md) |
 | 5 Verification | `feature/phase5-verification` | `v0.6.0` | **Shipped** — see [PHASE5.md](PHASE5.md) |
-| 6 Memory | `feature/phase6-memory` | `v0.7.0` | SQLite project/task/decision store |
+| 6 Memory | `feature/phase6-memory` | `v0.7.0` | **Shipped** — see [PHASE6.md](PHASE6.md) |
 | 7 Safety | `feature/phase7-safety` | `v0.8.0` | Permissions, approval gates, audit, git checkpoint |
 | 8 Eng. intelligence | `feature/phase8-engineering-intelligence` | `v0.9.0` | Health/debt/research hooks |
 | 9 Dashboard | `feature/phase9-dashboard` | `v1.0.0` | UI over engine (after CLI solid) |
 
-`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`. Phase 4 ships as `v0.5.0` with freeze branch `release/0.5.0`. Phase 5 ships as `v0.6.0` with freeze branch `release/0.6.0`.
+`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`. Phase 4 ships as `v0.5.0` with freeze branch `release/0.5.0`. Phase 5 ships as `v0.6.0` with freeze branch `release/0.6.0`. Phase 6 ships as `v0.7.0` with freeze branch `release/0.7.0`.
 
 ## Phase 1 — V1 CLI Definition of Done
 

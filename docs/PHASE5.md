@@ -17,7 +17,7 @@ Branch (during development): `feature/phase5-verification`
 
 | Capability | Phase |
 |---|---|
-| SQLite memory / decision store | 6 |
+| SQLite memory / decision store | **6 (shipped in `v0.7.0` — see [PHASE6.md](PHASE6.md))** |
 | Approval gates / audit / git checkpoint | 7 |
 | LLM-based failure diagnosis | later |
 | Full QA role autonomy | later |
