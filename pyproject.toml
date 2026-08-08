@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forgeos"
-version = "0.9.0"
+version = "1.0.0"
 description = "Local AI Engineering Operating System"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,6 +23,9 @@ forgeos = "forgeos.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["forgeos*"]
+
+[tool.setuptools.package-data]
+forgeos = ["dashboard/templates/*.html", "dashboard/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

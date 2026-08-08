@@ -2,6 +2,19 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.0.0] — 2026-08-08
+
+### Added
+
+- Phase 9 local dashboard: stdlib HTTP UI over engine APIs
+- Interactive approvals, health/debt refresh, checkpoints from the browser
+- CLI: `forgeos dashboard` (loopback `127.0.0.1:8765`)
+- [docs/PHASE9.md](docs/PHASE9.md); [docs/schemas/dashboard.schema.yaml](docs/schemas/dashboard.schema.yaml)
+
+### Changed
+
+- Package version `1.0.0`
+
 ## [0.9.0] — 2026-08-08
 
 ### Added

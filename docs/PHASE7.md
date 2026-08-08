@@ -17,7 +17,7 @@ Branch (during development): `feature/phase7-safety`
 
 | Capability | Phase |
 |---|---|
-| Interactive approval TUI / dashboard | 9 |
+| Interactive approval TUI / dashboard | **9 (shipped in `v1.0.0` — see [PHASE9.md](PHASE9.md))** |
 | Eng-intelligence health/debt/research hooks | **8 (shipped in `v0.9.0` — see [PHASE8.md](PHASE8.md))** |
 | Force-push / reset --hard / cloud prod deploy | never (policy) |
 | SQLite approval/audit tables | later |

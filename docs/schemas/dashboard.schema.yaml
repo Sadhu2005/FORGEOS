@@ -1,0 +1,34 @@
+# FORGEOS dashboard route contract (Phase 9)
+# Local stdlib HTTP UI over engine APIs. Bind loopback by default.
+
+server:
+  default_host: 127.0.0.1
+  default_port: 8765
+  allow_remote: explicit opt-in only
+
+routes:
+  GET /: list managed projects
+  GET /p/{name}: project overview (state, tasks counts, health, debt, checkpoints)
+  GET /p/{name}/tasks: task graph table
+  GET /p/{name}/approvals: pending approvals
+  POST /p/{name}/approvals/approve: form id= → approve + unblock + audit
+  POST /p/{name}/approvals/reject: form id= → reject + audit
+  GET /p/{name}/audit: recent audit.jsonl lines
+  GET /p/{name}/memory: memory counts + recent decisions/events
+  POST /p/{name}/intel/health: run health.probe
+  POST /p/{name}/intel/debt: run debt.scan
+  POST /p/{name}/checkpoint: create git checkpoint
+  GET /static/*: CSS/JS
+
+modules:
+  forgeos.dashboard.server: ThreadingHTTPServer handler
+  forgeos.dashboard.views: template render + aggregates
+  forgeos.dashboard.actions: approve/reject/health/debt/checkpoint
+
+cli:
+  forgeos dashboard [--host] [--port] [--allow-remote]
+
+notes:
+  - No new runtime dependencies (stdlib http.server).
+  - Workspace = Path.cwd() (same as CLI).
+  - Not a managed-app Next.js UI; engine-local only.

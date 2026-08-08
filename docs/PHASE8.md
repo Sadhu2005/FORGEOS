@@ -18,7 +18,7 @@ Branch (during development): `feature/phase8-engineering-intelligence`
 
 | Capability | Phase |
 |---|---|
-| Dashboard UI over engine | 9 |
+| Dashboard UI over engine | **9 (shipped in `v1.0.0` — see [PHASE9.md](PHASE9.md))** |
 | External web research / SaaS debt tools | later |
 | Auto pytest on every orchestrator cycle | later |
 
