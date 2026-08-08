@@ -56,6 +56,17 @@ def load_yaml_safe(path: Path) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+def ollama_status() -> dict[str, Any]:
+    """Soft ping for dashboard; never raises."""
+    try:
+        from forgeos.llm.ollama_client import OllamaClient
+
+        online = OllamaClient().ping()
+        return {"online": online, "label": "online" if online else "offline"}
+    except Exception:
+        return {"online": False, "label": "offline"}
+
+
 def project_overview(workspace: Path, name: str) -> dict[str, Any]:
     project = ws.project_root(workspace, name)
     state = ws.load(project)
@@ -84,6 +95,7 @@ def project_overview(workspace: Path, name: str) -> dict[str, Any]:
         "checkpoints": checkpoints,
         "has_backend": has_backend,
         "scaffold_hint": scaffold_hint,
+        "ollama": ollama_status(),
     }
 
 

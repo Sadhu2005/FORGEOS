@@ -64,11 +64,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
         if path == "/" or path == "":
             projects = views.list_projects(self.workspace)
+            ollama = views.ollama_status()
             html = views.render(
                 "index.html",
                 title="FORGEOS",
                 projects=projects,
                 has_projects=bool(projects),
+                ollama_label=ollama.get("label", "offline"),
                 empty_hint=""
                 if projects
                 else "No managed projects yet. Run: forgeos init <name>",
@@ -112,6 +114,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 has_checkpoints=bool(ov["checkpoints"]),
                 scaffold_hint=ov.get("scaffold_hint") or "",
                 has_scaffold_hint=bool(ov.get("scaffold_hint")),
+                ollama_label=(ov.get("ollama") or {}).get("label", "offline"),
             )
             self._send(200, html.encode("utf-8"))
             return
