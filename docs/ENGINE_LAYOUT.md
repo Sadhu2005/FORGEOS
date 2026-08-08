@@ -24,10 +24,11 @@ FORGEOS/
 │   │   ├── __init__.py
 │   │   └── fastapi_health.py  # scaffold_fastapi_health(..., with_db=, with_frontend=)
 │   ├── llm/
-│   │   ├── base.py            # LLMClient protocol
+│   │   ├── base.py
 │   │   ├── mock.py
 │   │   ├── ollama_client.py
 │   │   ├── model_router.py
+│   │   ├── governor.py        # Phase 13: unload + context caps
 │   │   └── context_manager.py
 │   ├── tools/
 │   │   ├── base.py            # ToolResult
@@ -86,6 +87,7 @@ FORGEOS/
 | `forgeos.planning.validate` + Ollama plan harden | 11 | **Present** (`v1.2.0`) |
 | Compose profile `db` + `/health` database field | 11b | **Present** (`v1.3.0`) |
 | Next.js frontend slice + `fastapi-next-health` | 12 | **Present** (`v1.4.0`) |
+| `full-pipeline` + classify/replan harden + `ResourceGovernor` | 13 | **Present** (`v1.5.0`) |
 
 ## Rules
 

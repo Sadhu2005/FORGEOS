@@ -2,6 +2,20 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.5.0] — 2026-08-09
+
+### Added
+
+- Phase 13: `full-pipeline` template (CEO→PM→Architect→…→Reporter) + autonomy LLM prompt
+- Class-aware replan: hard failures BLOCK without `ops-002-fix-N`; nested fixes stopped
+- `ResourceGovernor`: unload after Ollama plan/run, `num_ctx`, VRAM-aware prompt budget
+- [docs/PHASE13.md](docs/PHASE13.md)
+
+### Changed
+
+- Classifier uses stderr/stdout; stronger Docker env signals
+- Package version `1.5.0`
+
 ## [1.4.0] — 2026-08-09
 
 ### Added

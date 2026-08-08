@@ -27,6 +27,16 @@ def is_fastapi_next_health_goal(goal: str) -> bool:
     return has_next and has_api
 
 
+def is_full_pipeline_goal(goal: str) -> bool:
+    g = goal.lower()
+    if "full pipeline" in g or "autonomy" in g or "ceo pipeline" in g:
+        return True
+    has_ceo = "ceo" in g
+    has_arch = "architect" in g
+    has_pm = "product manager" in g or "product_manager" in g or " pm " in f" {g} "
+    return has_ceo and has_arch and has_pm
+
+
 def fastapi_scaffold_present(project_root: Path | None) -> bool:
     if project_root is None:
         return False
@@ -614,6 +624,213 @@ def fastapi_next_health_short_template(goal: str) -> list[Task]:
     ]
 
 
+def full_pipeline_full_template(goal: str) -> list[Task]:
+    """CEO → PM → Architect → Backend → QA → Docs → DevOps → Reporter safety net."""
+    return [
+        Task(
+            id="ceo-001",
+            description="CEO records goal charter",
+            status="READY",
+            role="ceo",
+            priority=10,
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": ".forge/reports/goal.md",
+                "content": f"# Goal charter\n\nGoal: {goal}\n\nStatus: approved for planning.\n",
+            },
+        ),
+        Task(
+            id="pm-001",
+            description="PM writes requirements",
+            status="PROPOSED",
+            role="product_manager",
+            priority=20,
+            dependencies=["ceo-001"],
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": "docs/REQUIREMENTS.md",
+                "content": (
+                    "# Requirements\n\n"
+                    f"Goal: {goal}\n\n"
+                    "- Deliver a minimal FastAPI /health service\n"
+                    "- Document architecture and run steps\n"
+                ),
+            },
+        ),
+        Task(
+            id="arch-001",
+            description="Architect documents stack",
+            status="PROPOSED",
+            role="software_architect",
+            priority=30,
+            dependencies=["pm-001"],
+            verification=["file exists", "contains:FastAPI"],
+            action={
+                "tool": "filesystem.write",
+                "path": "docs/ARCHITECTURE.md",
+                "content": (
+                    "# Architecture\n\n"
+                    "FastAPI backend with GET /health and /api/v1/ping.\n\n"
+                    f"Goal: {goal}\n"
+                ),
+            },
+        ),
+        Task(
+            id="be-001",
+            description="Backend implements /health and /api/v1/ping",
+            status="PROPOSED",
+            role="backend",
+            priority=40,
+            dependencies=["arch-001"],
+            verification=["file exists", "contains:health", "contains:/api/v1/ping"],
+            action={
+                "tool": "filesystem.write",
+                "path": "backend/app/main.py",
+                "content": (
+                    '"""Minimal FastAPI app."""\n\n'
+                    "from fastapi import FastAPI\n\n"
+                    'app = FastAPI(title="FORGEOS managed demo")\n\n\n'
+                    '@app.get("/health")\n'
+                    "def health() -> dict[str, str]:\n"
+                    '    return {"status": "ok"}\n\n\n'
+                    '@app.get("/api/v1/ping")\n'
+                    "def ping() -> dict[str, str]:\n"
+                    '    return {"ok": "true", "api": "v1"}\n'
+                ),
+            },
+        ),
+        Task(
+            id="qa-001",
+            description="QA acceptance note",
+            status="PROPOSED",
+            role="qa",
+            priority=50,
+            dependencies=["be-001"],
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": ".forge/reports/qa.md",
+                "content": f"# QA\n\nGoal: {goal}\n\nAcceptance: health endpoint planned.\n",
+            },
+        ),
+        Task(
+            id="doc-001",
+            description="Documentation updates README",
+            status="PROPOSED",
+            role="documentation",
+            priority=60,
+            dependencies=["qa-001"],
+            verification=["file exists", "contains:/health"],
+            action={
+                "tool": "filesystem.write",
+                "path": "README.md",
+                "content": (
+                    f"# Project\n\nGoal: {goal}\n\n"
+                    "`GET /health` → ok\n"
+                ),
+            },
+        ),
+        Task(
+            id="ops-001",
+            description="DevOps writes backend compose",
+            status="PROPOSED",
+            role="devops",
+            priority=70,
+            dependencies=["doc-001"],
+            verification=["file exists", "contains:backend"],
+            action={
+                "tool": "filesystem.write",
+                "path": "docker/docker-compose.yml",
+                "content": (
+                    "services:\n"
+                    "  backend:\n"
+                    "    build:\n"
+                    "      context: ..\n"
+                    "      dockerfile: docker/Dockerfile.backend\n"
+                    "    ports:\n"
+                    '      - "8000:8000"\n'
+                ),
+            },
+        ),
+        Task(
+            id="rep-001",
+            description="Reporter writes final summary",
+            status="PROPOSED",
+            role="reporter",
+            priority=80,
+            dependencies=["ops-001"],
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": ".forge/reports/final.md",
+                "content": f"# Final report\n\nGoal: {goal}\n\nPipeline complete.\n",
+            },
+        ),
+    ]
+
+
+def full_pipeline_short_template(goal: str) -> list[Task]:
+    """When backend scaffold present: QA → docs → ops read → reporter."""
+    return [
+        Task(
+            id="qa-001",
+            description="QA acceptance note (scaffolded)",
+            status="READY",
+            role="qa",
+            priority=10,
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": ".forge/reports/qa.md",
+                "content": f"# QA\n\nGoal: {goal}\n\nScaffold present; verify docs.\n",
+            },
+        ),
+        Task(
+            id="doc-001",
+            description="Confirm README",
+            status="PROPOSED",
+            role="documentation",
+            priority=20,
+            dependencies=["qa-001"],
+            verification=["file exists", "contains:/health"],
+            action={
+                "tool": "filesystem.write",
+                "path": "README.md",
+                "content": f"# Project\n\nGoal: {goal}\n\n`GET /health` → ok\n",
+            },
+        ),
+        Task(
+            id="ops-001",
+            description="Validate compose present",
+            status="PROPOSED",
+            role="devops",
+            priority=30,
+            dependencies=["doc-001"],
+            verification=["file exists", "contains:backend"],
+            action={
+                "tool": "filesystem.read",
+                "path": "docker/docker-compose.yml",
+            },
+        ),
+        Task(
+            id="rep-001",
+            description="Reporter final summary",
+            status="PROPOSED",
+            role="reporter",
+            priority=40,
+            dependencies=["ops-001"],
+            verification=["file exists", "file is non-empty"],
+            action={
+                "tool": "filesystem.write",
+                "path": ".forge/reports/final.md",
+                "content": f"# Final report\n\nGoal: {goal}\n\nShort pipeline done.\n",
+            },
+        ),
+    ]
+
+
 def select_template(
     goal: str,
     *,
@@ -624,6 +841,16 @@ def select_template(
     name = (template or "").strip().lower()
     if name in ("default", "ceo", "ceo-report"):
         return ceo_report_template(goal)
+    use_full = name in (
+        "full-pipeline",
+        "full_pipeline",
+        "autonomy",
+        "ceo-pipeline",
+    ) or (not name and is_full_pipeline_goal(goal))
+    if use_full:
+        if fastapi_scaffold_present(project_root):
+            return full_pipeline_short_template(goal)
+        return full_pipeline_full_template(goal)
     use_next = name in (
         "fastapi-next-health",
         "fastapi_next_health",

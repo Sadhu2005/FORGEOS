@@ -67,7 +67,9 @@ _RULES: list[tuple[FailureClass, re.Pattern[str], str, str]] = [
         "env",
         re.compile(
             r"connection refused|unreachable|docker binary not found|Permission denied|"
-            r"No such file|FileNotFoundError|compose file missing|ollama unreachable",
+            r"No such file|FileNotFoundError|compose file missing|ollama unreachable|"
+            r"Cannot connect to the Docker daemon|pull access denied|docker\.sock|"
+            r"error during connect|no such file or directory",
             re.I,
         ),
         "MEDIUM",

@@ -5,6 +5,7 @@ writes:
   - .forge/reports/task-*
 allowed_tools:
   - filesystem.read
+  - filesystem.write
   - reports.read
   - reports.write
   - world_state.read

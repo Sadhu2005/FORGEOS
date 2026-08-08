@@ -146,9 +146,11 @@ class Orchestrator:
         graph = TaskGraph.load(ws.tasks_path(self.project))
         role = load_role(self.workspace, self.role_id)
         plan_template = template if template is not None else self.plan_template
+        from forgeos.llm.governor import ResourceGovernor
         from forgeos.planning.templates import (
             is_fastapi_health_goal,
             is_fastapi_next_health_goal,
+            is_full_pipeline_goal,
         )
 
         managed = (
@@ -156,9 +158,24 @@ class Orchestrator:
             or is_fastapi_next_health_goal(goal)
             or is_fastapi_health_goal(goal)
         )
+        autonomy = (
+            (plan_template or "") in ("full-pipeline", "full_pipeline", "autonomy", "ceo-pipeline")
+            or (plan_template or "").startswith("full-pipeline")
+            or is_full_pipeline_goal(goal)
+        )
         prompt = None
         if self.use_context:
-            if managed and (
+            gov = ResourceGovernor()
+            self.context.budget = gov.prompt_budget()
+            if autonomy:
+                extra = (
+                    "Return a JSON array of multi-role autonomy tasks with concrete action "
+                    "objects (prefer filesystem.write). Use roles in order when possible: "
+                    "ceo, product_manager, software_architect, backend, qa, documentation, "
+                    "devops, reporter. Optionally include frontend or database when the goal "
+                    "requires them. Do not assign backend/** or frontend/** writes to ceo."
+                )
+            elif managed and (
                 (plan_template or "").startswith("fastapi-next")
                 or is_fastapi_next_health_goal(goal)
             ):
@@ -166,14 +183,16 @@ class Orchestrator:
                     "Return a JSON array of multi-role managed-app tasks with concrete action "
                     "objects (filesystem.write, testing.run with cwd=backend, docker.compose_up). "
                     "Include a frontend role task under frontend/** that calls /api/v1/ping. "
-                    "Use roles software_architect, backend, frontend, devops, qa, documentation. "
+                    "Use roles software_architect, backend, frontend, devops, qa, documentation; "
+                    "product_manager or reporter allowed if useful. "
                     "Do not assign backend/** writes to ceo."
                 )
             elif managed:
                 extra = (
                     "Return a JSON array of multi-role managed-app tasks with concrete action "
                     "objects (filesystem.write, testing.run with cwd=backend, docker.compose_up). "
-                    "Use roles software_architect, backend, devops, qa, documentation. "
+                    "Use roles software_architect, backend, devops, qa, documentation; "
+                    "product_manager or reporter allowed if useful. "
                     "Do not assign backend/** writes to ceo."
                 )
             else:
@@ -199,10 +218,13 @@ class Orchestrator:
                 roles_dir=self.workspace / "roles",
             )
 
-        self._with_llm_guard(_plan)
-        graph.save(ws.tasks_path(self.project))
-        self._sync_memory()
-        return graph
+        try:
+            self._with_llm_guard(_plan)
+            graph.save(ws.tasks_path(self.project))
+            self._sync_memory()
+            return graph
+        finally:
+            ResourceGovernor().unload_llm(self.llm)
 
     def run_once(self, goal: str = "Phase 1 stub: write hello report") -> CycleResult:
         state = ws.load(self.project)
@@ -342,15 +364,24 @@ class Orchestrator:
         observer = Observer(fs)
 
         if not exec_result.ok:
+            class_msg = "\n".join(
+                p
+                for p in (
+                    exec_result.detail,
+                    getattr(exec_result, "stderr", "") or "",
+                    getattr(exec_result, "stdout", "") or "",
+                )
+                if p
+            )
             classification = self.classifier.classify(
-                exec_result.detail,
+                class_msg,
                 tool=exec_result.tool,
                 exit_code=exec_result.exit_code,
             )
             replan = self.replanner.on_failure(
                 graph,
                 task,
-                exec_result.detail,
+                class_msg or exec_result.detail,
                 failure_class=classification.failure_class,
             )
             exec_obs = observer.observe_exec(exec_result)
@@ -425,7 +456,13 @@ class Orchestrator:
             evidence = list(verify.evidence)
         else:
             classification = self.classifier.classify(
-                "; ".join(verify.failures),
+                "; ".join(
+                    [
+                        *verify.failures,
+                        getattr(exec_result, "stderr", "") or "",
+                        getattr(exec_result, "stdout", "") or "",
+                    ]
+                ),
                 tool=str(task.action.get("tool", "")),
                 exit_code=exec_result.exit_code,
             )
@@ -492,19 +529,24 @@ class Orchestrator:
         )
 
     def run_steps(self, goal: str, steps: int = 1) -> StepsResult:
-        cycles: list[CycleResult] = []
-        for _ in range(max(1, steps)):
-            graph = TaskGraph.load(ws.tasks_path(self.project))
-            if any(t.status == "BLOCKED" for t in graph.tasks):
-                return StepsResult(False, cycles, "blocked for human review")
-            result = self.run_once(goal=goal)
-            cycles.append(result)
-            if result.task_id == "" and result.message == "no READY tasks":
-                return StepsResult(True, cycles, "all scheduled work done")
-            if not result.ok and "blocked" in result.message.lower():
-                return StepsResult(False, cycles, result.message)
-        ok = all(c.ok or c.task_id == "" for c in cycles)
-        return StepsResult(ok, cycles, f"completed {len(cycles)} cycle(s)")
+        from forgeos.llm.governor import ResourceGovernor
+
+        try:
+            cycles: list[CycleResult] = []
+            for _ in range(max(1, steps)):
+                graph = TaskGraph.load(ws.tasks_path(self.project))
+                if any(t.status == "BLOCKED" for t in graph.tasks):
+                    return StepsResult(False, cycles, "blocked for human review")
+                result = self.run_once(goal=goal)
+                cycles.append(result)
+                if result.task_id == "" and result.message == "no READY tasks":
+                    return StepsResult(True, cycles, "all scheduled work done")
+                if not result.ok and "blocked" in result.message.lower():
+                    return StepsResult(False, cycles, result.message)
+            ok = all(c.ok or c.task_id == "" for c in cycles)
+            return StepsResult(ok, cycles, f"completed {len(cycles)} cycle(s)")
+        finally:
+            ResourceGovernor().unload_llm(self.llm)
 
     def _assert_tool_allowed(self, role: RolePolicy, tool: str) -> None:
         if tool and tool not in role.allowed_tools:

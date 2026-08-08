@@ -651,7 +651,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_plan.add_argument("--force", action="store_true", help="replace existing graph")
     p_plan.add_argument(
         "--template",
-        choices=("fastapi-health", "fastapi-next-health", "default"),
+        choices=(
+            "fastapi-health",
+            "fastapi-next-health",
+            "full-pipeline",
+            "default",
+        ),
         default=None,
         help="seed graph template (default: auto-detect from goal)",
     )

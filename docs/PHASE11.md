@@ -13,7 +13,7 @@
 
 - PostgreSQL / Redis compose profile (**Postgres profile shipped in Phase 11b** — see [PHASE11B.md](PHASE11B.md))
 - Next.js frontend (**shipped in Phase 12** — see [PHASE12.md](PHASE12.md))
-- Full CEO→…→Reporter autonomy without templates
+- Full CEO→…→Reporter autonomous pipeline without templates (**Phase 13 ships LLM-first + `full-pipeline` safety net** — see [PHASE13.md](PHASE13.md))
 - Cloud deploy
 - Making Ollama the default CLI backend
 - Using `qwen3:4b` for plan JSON (revisit after think/latency fixes)

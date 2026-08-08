@@ -1,4 +1,4 @@
-"""Replan on task failure with capped attempts."""
+"""Replan on task failure with capped attempts (Phase 13: stop fix-N chains)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from forgeos.planning.task_graph import Task, TaskGraph
 
 DEFAULT_MAX_ATTEMPTS = 3
+HARD_FAILURE_CLASSES = frozenset({"env", "permission", "timeout"})
 
 
 @dataclass
@@ -32,7 +33,30 @@ class Replanner:
         task.attempts = int(task.attempts or 0) + 1
         task.last_error = f"[{failure_class}] {error}"
 
-        if task.attempts >= self.max_attempts:
+        # Never nest ops-002-fix-1-fix-1 chains.
+        if "-fix-" in task.id:
+            task.status = "BLOCKED"
+            return ReplanResult(
+                blocked=True,
+                fix_task=None,
+                message=(
+                    f"blocked nested fix task {task.id} after [{failure_class}]: {error}"
+                ),
+            )
+
+        # Env / permission / timeout: escalate to human — no auto fix-N.
+        if failure_class in HARD_FAILURE_CLASSES:
+            task.status = "BLOCKED"
+            return ReplanResult(
+                blocked=True,
+                fix_task=None,
+                message=(
+                    f"blocked [{failure_class}] (no auto-fix; fix env or approve): {error}"
+                ),
+            )
+
+        # Soft classes: at most one fix report, then block.
+        if task.attempts >= self.max_attempts or task.attempts > 1:
             task.status = "BLOCKED"
             return ReplanResult(
                 blocked=True,
@@ -46,7 +70,10 @@ class Replanner:
             fix_id = f"{task.id}-fix-{n}-b"
         fix = Task(
             id=fix_id,
-            description=f"Fix [{failure_class}] after failure of {task.id}: {error[:120]}",
+            description=(
+                f"Fix [{failure_class}] after failure of {task.id}: {error[:120]} "
+                f"(root remains FAILED until human/repair)"
+            ),
             status="READY",
             role=task.role or "ceo",
             priority=max(1, int(task.priority) - 1),
@@ -58,7 +85,7 @@ class Replanner:
                     f"# FORGEOS fix report\n\nFailed task: {task.id}\n"
                     f"Failure class: {failure_class}\n"
                     f"Attempt: {n}\nError: {error}\n\n"
-                    "Status: fix artifact recorded.\n"
+                    "Status: fix artifact recorded; root task not auto-retried.\n"
                 ),
             },
             attempts=0,
