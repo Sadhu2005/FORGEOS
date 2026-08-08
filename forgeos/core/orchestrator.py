@@ -14,7 +14,6 @@ from forgeos.llm.mock import MockLLM
 from forgeos.planning.planner import PlannerStub
 from forgeos.planning.task_graph import TaskGraph
 from forgeos.roles.loader import RolePolicy, load_role
-from forgeos.tools.filesystem import FilesystemTool
 
 
 @dataclass
@@ -65,9 +64,10 @@ class Orchestrator:
         task.status = "RUNNING"
         graph.save(ws.tasks_path(self.project))
 
-        fs = FilesystemTool(self.project, role.writes)
+        fs = None
+        executor = Executor(self.project, role)
+        fs = executor.fs
         self._assert_tool_allowed(role, task.action.get("tool", ""))
-        executor = Executor(fs, role)
         exec_result = executor.execute(task.action)
         if not exec_result.ok:
             task.status = "FAILED"

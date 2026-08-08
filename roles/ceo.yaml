@@ -11,6 +11,8 @@ allowed_tools:
   - reports.read
   - filesystem.read
   - filesystem.write
+  - filesystem.search
+  - filesystem.tree
 forbidden:
   - write application code under frontend/
   - write application code under backend/

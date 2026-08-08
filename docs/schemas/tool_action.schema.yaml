@@ -1,0 +1,64 @@
+# Tool action envelope (Phase 2+)
+# Actions are dicts dispatched by forgeos.tools.registry.ToolRegistry
+
+type: object
+required:
+  - tool
+properties:
+  tool:
+    type: string
+    description: Registered tool id (e.g. filesystem.write, git.status)
+  path:
+    type: string
+    description: Project-relative path for filesystem tools
+  content:
+    type: string
+    description: File content for filesystem.write
+  old:
+    type: string
+    description: Substring to replace for filesystem.edit
+  new:
+    type: string
+    description: Replacement text for filesystem.edit
+  query:
+    type: string
+    description: Search string for filesystem.search
+  root:
+    type: string
+    description: Subtree root for search/tree (default ".")
+  max_hits:
+    type: integer
+    description: Cap for filesystem.search results
+  max_depth:
+    type: integer
+    description: Depth limit for filesystem.tree
+  command:
+    type: string
+    description: Shell command for terminal.execute
+  timeout_s:
+    type: number
+    description: Optional timeout override for terminal.execute
+  message:
+    type: string
+    description: Commit message for git.commit
+  add_all:
+    type: boolean
+    description: Whether git.commit stages all changes first
+  name:
+    type: string
+    description: Branch name for git.branch
+  create:
+    type: boolean
+    description: Create branch when set with name
+  staged:
+    type: boolean
+    description: Prefer staged diff for git.diff
+  args:
+    type: array
+    items:
+      type: string
+    description: Extra argv for testing.run (default ["-q"])
+  compose_file:
+    type: string
+    description: Compose file path for docker.compose_config
+additionalProperties: true

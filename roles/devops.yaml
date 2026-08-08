@@ -8,10 +8,15 @@ writes:
 allowed_tools:
   - filesystem.read
   - filesystem.write
-  - docker.compose
+  - filesystem.edit
+  - filesystem.search
+  - filesystem.tree
+  - filesystem.delete
+  - docker.compose_config
   - terminal.execute
   - git.status
   - git.diff
+  - git.branch
   - git.commit
 forbidden:
   - production or cloud deploy without CRITICAL human approval

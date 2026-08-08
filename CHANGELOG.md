@@ -2,6 +2,23 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.3.0] — 2026-08-08
+
+### Added
+
+- Phase 2 tool engine: registry dispatch, shared `ToolResult`
+- Filesystem `edit` / `search` / `tree` / `delete`
+- `terminal.execute` with cwd sandbox, timeout, and deny list
+- Git `status` / `diff` / `branch` / `commit` (refuse force-push and `reset --hard`)
+- `testing.run` (pytest) and `docker.compose_config`
+- CLI: `forgeos tools list`, `forgeos tools exec`, `forgeos run --tool-demo`
+- Role YAML Phase 2 tool allowlists; [docs/schemas/tool_action.schema.yaml](docs/schemas/tool_action.schema.yaml)
+- [docs/PHASE2.md](docs/PHASE2.md)
+
+### Changed
+
+- Package version `0.3.0`; executor dispatches via tool registry
+
 ## [0.2.0] — 2026-08-08
 
 ### Added
