@@ -11,12 +11,28 @@ from forgeos import __version__
 from forgeos.core import world_state as ws
 from forgeos.core.executor import Executor
 from forgeos.core.orchestrator import Orchestrator
+from forgeos.llm.base import LLMClient, LLMError
+from forgeos.llm.context_manager import ContextManager
+from forgeos.llm.mock import MockLLM
+from forgeos.llm.model_router import DEFAULT_ROUTING, ModelRouter, RoutedLLM
+from forgeos.llm.ollama_client import OllamaClient, default_host
 from forgeos.roles.loader import load_role
 from forgeos.tools.registry import default_tool_ids
 
 
 def _workspace() -> Path:
     return Path.cwd()
+
+
+def _build_llm(kind: str, task_class: str = "planning") -> tuple[LLMClient, bool]:
+    """Return (client, use_context)."""
+    if kind == "mock":
+        return MockLLM(), False
+    if kind == "ollama":
+        client = OllamaClient()
+        router = ModelRouter(client)
+        return RoutedLLM(router, task_class=task_class), True
+    raise ValueError(f"unknown llm backend: {kind}")
 
 
 def cmd_init(args: argparse.Namespace) -> int:
@@ -63,8 +79,24 @@ def cmd_run(args: argparse.Namespace) -> int:
         return _tool_demo(workspace, args.name, args.role)
 
     goal = args.goal or "Phase 1 stub: write hello report"
-    orch = Orchestrator(workspace, args.name, role_id=args.role)
-    result = orch.run_once(goal=goal)
+    try:
+        llm, use_context = _build_llm(args.llm, task_class="planning")
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    orch = Orchestrator(
+        workspace,
+        args.name,
+        role_id=args.role,
+        llm=llm,
+        context=ContextManager(project_root=project),
+        use_context=use_context,
+    )
+    try:
+        result = orch.run_once(goal=goal)
+    except LLMError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     print(result.message)
     print(f"task: {result.task_id}")
     if result.report_path:
@@ -129,6 +161,39 @@ def cmd_tools_exec(args: argparse.Namespace) -> int:
     return 0 if result.ok else 1
 
 
+def cmd_llm_status(_args: argparse.Namespace) -> int:
+    host = default_host()
+    print(f"host: {host}")
+    print("routing defaults:")
+    for task_class, model in DEFAULT_ROUTING.items():
+        print(f"  {task_class}: {model}")
+    client = OllamaClient(host=host)
+    try:
+        models = client.list_models()
+    except LLMError as exc:
+        print(f"reachable: false")
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    print("reachable: true")
+    print("models:")
+    for name in models:
+        print(f"  {name}")
+    return 0
+
+
+def cmd_llm_complete(args: argparse.Namespace) -> int:
+    client = OllamaClient()
+    router = ModelRouter(client)
+    try:
+        text = router.complete(args.prompt, task_class=args.task_class)
+    except LLMError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    print(f"model: {router.current_model}")
+    print(text)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forgeos",
@@ -149,6 +214,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("name", help="project name")
     p_run.add_argument("--goal", default=None, help="goal text for the stub planner")
     p_run.add_argument("--role", default="ceo", help="role policy id (default: ceo)")
+    p_run.add_argument(
+        "--llm",
+        choices=("mock", "ollama"),
+        default="mock",
+        help="LLM backend (default: mock)",
+    )
     p_run.add_argument(
         "--tool-demo",
         action="store_true",
@@ -174,6 +245,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_exec.set_defaults(func=cmd_tools_exec)
 
+    p_llm = sub.add_parser("llm", help="inspect and smoke-test local LLM")
+    llm_sub = p_llm.add_subparsers(dest="llm_command")
+
+    p_llm_status = llm_sub.add_parser("status", help="ping Ollama and list models")
+    p_llm_status.set_defaults(func=cmd_llm_status)
+
+    p_llm_complete = llm_sub.add_parser("complete", help="run one routed completion")
+    p_llm_complete.add_argument("--prompt", required=True, help="prompt text")
+    p_llm_complete.add_argument(
+        "--task-class",
+        choices=("coding", "simple", "planning"),
+        default="simple",
+        help="routing task class (default: simple)",
+    )
+    p_llm_complete.set_defaults(func=cmd_llm_complete)
+
     return parser
 
 
@@ -185,6 +272,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "tools" and not getattr(args, "tools_command", None):
         parser.parse_args(["tools", "--help"])
+        return 0
+    if args.command == "llm" and not getattr(args, "llm_command", None):
+        parser.parse_args(["llm", "--help"])
         return 0
     return int(args.func(args))
 
