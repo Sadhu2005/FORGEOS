@@ -20,6 +20,10 @@ from forgeos.planning.replan import Replanner
 from forgeos.planning.scheduler import Scheduler
 from forgeos.planning.task_graph import TaskGraph
 from forgeos.roles.loader import RolePolicy, load_role
+from forgeos.safety.approval import ApprovalStore
+from forgeos.safety.audit import AuditLog
+from forgeos.safety.permissions import check as permission_check, fingerprint
+from forgeos.tools.git import GitTool
 
 
 @dataclass
@@ -64,6 +68,8 @@ class Orchestrator:
         self.classifier = FailureClassifier()
         self.verifier = Verifier()
         self.memory = Repository(self.project)
+        self.approvals = ApprovalStore(self.project)
+        self.audit = AuditLog(self.project)
         self._llm_guard = False
 
     def _with_llm_guard(self, fn):
@@ -180,6 +186,103 @@ class Orchestrator:
         executor = Executor(self.project, role)
         fs = executor.fs
         self._assert_tool_allowed(role, task.action.get("tool", ""))
+
+        branch = ""
+        try:
+            branch = GitTool(self.project).current_branch()
+        except Exception:
+            branch = "main"
+        decision = permission_check(
+            role,
+            task.action,
+            task_risk=str(getattr(task, "risk", "low") or "low"),
+            branch=branch,
+        )
+        fp = fingerprint(task.id, task.action)
+        if decision.kind == "deny":
+            task.status = "BLOCKED"
+            task.last_error = decision.reason
+            counts = graph.update_counts()
+            state["tasks"] = counts
+            ws.save(self.project, state)
+            graph.save(ws.tasks_path(self.project))
+            self.audit.append(
+                "permission",
+                decision.reason,
+                task_id=task.id,
+                payload={"kind": "deny", "tool": task.action.get("tool")},
+            )
+            self._sync_memory()
+            evidence = [decision.reason]
+            report = self._write_report(goal, task.id, False, evidence, role, failure_class="permission")
+            return CycleResult(
+                False,
+                self.project,
+                task.id,
+                report,
+                evidence,
+                f"blocked by permission: {decision.reason}",
+                failure_class="permission",
+            )
+
+        if decision.kind == "need_approval":
+            if not self.approvals.is_approved(fp):
+                ticket = self.approvals.request(
+                    project_name=self.project_name,
+                    task_id=task.id,
+                    action=dict(task.action),
+                    risk=decision.risk or "critical",
+                    reason=decision.reason,
+                )
+                task.status = "BLOCKED"
+                task.last_error = f"awaiting approval {ticket['id']}: {decision.reason}"
+                counts = graph.update_counts()
+                state["tasks"] = counts
+                ws.save(self.project, state)
+                graph.save(ws.tasks_path(self.project))
+                self.audit.append(
+                    "approval",
+                    f"pending {ticket['id']}",
+                    task_id=task.id,
+                    payload={"approval_id": ticket["id"], "reason": decision.reason},
+                )
+                self.memory.add_decision(
+                    problem=decision.reason[:500],
+                    options=["approve", "reject"],
+                    chosen="await_human",
+                    confidence="HIGH",
+                    risk=decision.risk or "critical",
+                    reason=f"approval required: {ticket['id']}",
+                    evidence=[ticket["id"], decision.reason],
+                )
+                self._sync_memory()
+                evidence = [f"approval pending: {ticket['id']}", decision.reason]
+                report = self._write_report(
+                    goal, task.id, False, evidence, role, failure_class="permission"
+                )
+                return CycleResult(
+                    False,
+                    self.project,
+                    task.id,
+                    report,
+                    evidence,
+                    f"blocked for human review: approval {ticket['id']}",
+                    failure_class="permission",
+                )
+            self.audit.append(
+                "approval",
+                "approved ticket consumed",
+                task_id=task.id,
+                payload={"fingerprint": fp},
+            )
+        elif decision.kind == "allow" and "without human gate" in decision.reason:
+            self.audit.append(
+                "permission",
+                decision.reason,
+                task_id=task.id,
+                payload={"kind": "allow_critical", "tool": task.action.get("tool")},
+            )
+
         exec_result = executor.execute(task.action)
         observer = Observer(fs)
 
