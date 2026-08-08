@@ -68,6 +68,11 @@ def cmd_init(args: argparse.Namespace) -> int:
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    if getattr(args, "scaffold", False):
+        from forgeos.scaffold import scaffold_fastapi_health
+
+        written = scaffold_fastapi_health(root, name=args.name)
+        print(f"scaffolded FastAPI /health tree ({len(written)} files)")
     print(f"initialized project at {root}")
     print(f"state: {ws.state_path(root)}")
     return 0
@@ -140,7 +145,10 @@ def cmd_plan(args: argparse.Namespace) -> int:
     goal = args.goal or "Phase 4 plan"
     try:
         orch = _make_orch(workspace, args.name, args)
-        graph = orch.ensure_plan(goal, force=bool(args.force))
+        template = getattr(args, "template", None)
+        if template:
+            orch.plan_template = template
+        graph = orch.ensure_plan(goal, force=bool(args.force), template=template)
     except (ValueError, LLMError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -580,6 +588,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_init = sub.add_parser("init", help="create a managed project sandbox")
     p_init.add_argument("name", help="project name under projects/")
+    p_init.add_argument(
+        "--scaffold",
+        action="store_true",
+        help="also write minimal FastAPI /health + docker + docs tree",
+    )
     p_init.set_defaults(func=cmd_init)
 
     p_status = sub.add_parser("status", help="show world state summary")
@@ -610,6 +623,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_plan.add_argument("--role", default="ceo", help="role used for context")
     p_plan.add_argument("--llm", choices=("mock", "ollama"), default="mock")
     p_plan.add_argument("--force", action="store_true", help="replace existing graph")
+    p_plan.add_argument(
+        "--template",
+        choices=("fastapi-health", "default"),
+        default=None,
+        help="seed graph template (default: auto-detect from goal)",
+    )
     p_plan.set_defaults(func=cmd_plan)
 
     p_tasks = sub.add_parser("tasks", help="inspect task graph")
