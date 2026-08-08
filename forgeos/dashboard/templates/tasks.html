@@ -1,0 +1,19 @@
+<nav class="crumb"><a href="/">Projects</a> / <a href="/p/{{name}}">{{name}}</a> / Tasks</nav>
+<h1 class="display-sm">Tasks</h1>
+{{#if has_tasks}}
+<table class="data">
+  <thead><tr><th>ID</th><th>Status</th><th>Role</th><th>Risk</th><th>Description</th></tr></thead>
+  <tbody>
+  {{#each tasks}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.status}}</td>
+      <td>{{this.role}}</td>
+      <td>{{this.risk}}</td>
+      <td>{{this.description}}</td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>
+{{/if}}
+<p class="empty-hint">{{empty_hint}}</p>

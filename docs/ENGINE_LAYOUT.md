@@ -44,6 +44,12 @@ FORGEOS/
 │   │   ├── health.py
 │   │   ├── debt.py
 │   │   └── research.py
+│   ├── dashboard/
+│   │   ├── server.py
+│   │   ├── views.py
+│   │   ├── actions.py
+│   │   ├── static/
+│   │   └── templates/
 │   └── roles/
 │       └── loader.py          # loads ../../roles/*.yaml
 ├── roles/                     # YAML policies (repo root) — see roles/README.md
@@ -70,7 +76,7 @@ FORGEOS/
 | `forgeos.memory` | 6 | **Present** (`v0.7.0`) |
 | `forgeos.safety` | 7 | **Present** (`v0.8.0`) |
 | `forgeos.intelligence` | 8 | **Present** (`v0.9.0`) |
-| Dashboard (separate UI) | 9 | Pending |
+| `forgeos.dashboard` | 9 | **Present** (`v1.0.0`) |
 
 ## Rules
 

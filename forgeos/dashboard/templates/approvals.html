@@ -1,0 +1,25 @@
+<nav class="crumb"><a href="/">Projects</a> / <a href="/p/{{name}}">{{name}}</a> / Approvals</nav>
+<h1 class="display-sm">Approvals</h1>
+{{#if has_approvals}}
+{{#each approvals}}
+<article class="approval-card pending-pulse">
+  <header>
+    <strong>{{this.id}}</strong>
+    <span class="pill">{{this.risk}}</span>
+  </header>
+  <p class="muted">task {{this.task_id}} · {{this.tool}}</p>
+  <p>{{this.reason}}</p>
+  <div class="actions">
+    <form method="post" action="/p/{{name}}/approvals/approve" class="inline-form">
+      <input type="hidden" name="id" value="{{this.id}}" />
+      <button type="submit" class="btn btn-primary" data-confirm="Approve this ticket?">Approve</button>
+    </form>
+    <form method="post" action="/p/{{name}}/approvals/reject" class="inline-form">
+      <input type="hidden" name="id" value="{{this.id}}" />
+      <button type="submit" class="btn btn-danger" data-confirm="Reject this ticket?">Reject</button>
+    </form>
+  </div>
+</article>
+{{/each}}
+{{/if}}
+<p class="empty-hint">{{empty_hint}}</p>

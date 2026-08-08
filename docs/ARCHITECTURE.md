@@ -127,7 +127,7 @@ Full permissions and handoffs: [ROLES.md](ROLES.md). End-to-end flow: [WORKFLOW.
 | **FORGEOS engine** | Orchestrator, planner, tools, role policies, benchmarks — this repo |
 | **Managed project** | App monorepo (`frontend/`, `backend/`, `database/`, `docker/`, `docs/`, `.forge/`) that FORGEOS creates and drives |
 
-**Runnable today:** Phase 0–8 CLI including intelligence (`forgeos intelligence health|debt|research`). See [PHASE8.md](PHASE8.md).
+**Runnable today:** Phase 0–9 including local dashboard (`forgeos dashboard`). See [PHASE9.md](PHASE9.md).
 
 ## Related documents
 
@@ -136,11 +136,12 @@ Full permissions and handoffs: [ROLES.md](ROLES.md). End-to-end flow: [WORKFLOW.
 - [PHASE6.md](PHASE6.md) — Phase 6 memory
 - [PHASE7.md](PHASE7.md) — Phase 7 safety
 - [PHASE8.md](PHASE8.md) — Phase 8 engineering intelligence
+- [PHASE9.md](PHASE9.md) — Phase 9 dashboard
 - [ENGINE_LAYOUT.md](ENGINE_LAYOUT.md) — package paths
 - [MODEL_ROUTING.md](MODEL_ROUTING.md) — which local model to use
 - [PHASES.md](PHASES.md) — phase map and Phase 1 DoD
 - [ROLES.md](ROLES.md) — role policies
-- [schemas/](schemas/) — world state / task / decision / role / memory / approval / intelligence schemas
+- [schemas/](schemas/) — world state / task / decision / role / memory / approval / intelligence / dashboard schemas
 - [GIT_AND_RELEASE.md](GIT_AND_RELEASE.md) — branches, tags, SemVer
 - [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md) — monorepo shape
 - [API_VERSIONING.md](API_VERSIONING.md) — `/api/v1` rules

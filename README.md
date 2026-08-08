@@ -26,6 +26,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/PHASE6.md](docs/PHASE6.md) | Phase 6 memory what shipped / deferred |
 | [docs/PHASE7.md](docs/PHASE7.md) | Phase 7 safety what shipped / deferred |
 | [docs/PHASE8.md](docs/PHASE8.md) | Phase 8 engineering intelligence what shipped / deferred |
+| [docs/PHASE9.md](docs/PHASE9.md) | Phase 9 dashboard what shipped / deferred |
 | [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
@@ -37,7 +38,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 benchmark + Phase 1–8 CLI (`forgeos init|run|status|tools|llm|plan|tasks|classify|verify|memory|safety|checkpoint|intelligence`). Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
+**Runnable today:** Phase 0 benchmark + Phase 1–9 CLI including `forgeos dashboard` (local UI). Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -123,6 +124,13 @@ forgeos checkpoint list demo
 forgeos intelligence health demo
 forgeos intelligence debt demo
 forgeos intelligence research demo --query "architecture"
+```
+
+## Phase 9 — Dashboard
+
+```powershell
+forgeos dashboard
+# open http://127.0.0.1:8765/
 ```
 
 ## Phase 0 — Benchmark

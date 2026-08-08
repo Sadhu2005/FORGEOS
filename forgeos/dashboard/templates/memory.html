@@ -1,0 +1,35 @@
+<nav class="crumb"><a href="/">Projects</a> / <a href="/p/{{name}}">{{name}}</a> / Memory</nav>
+<h1 class="display-sm">Memory</h1>
+<p class="lede-sm">tasks {{tasks_count}} · decisions {{decisions_count}} · events {{events_count}}</p>
+
+<h2>Decisions</h2>
+{{#if has_decisions}}
+<table class="data">
+  <thead><tr><th>ID</th><th>Chosen</th><th>Problem</th></tr></thead>
+  <tbody>
+  {{#each decisions}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.chosen}}</td>
+      <td>{{this.problem}}</td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>
+{{/if}}
+
+<h2>Events</h2>
+{{#if has_events}}
+<table class="data">
+  <thead><tr><th>ID</th><th>Kind</th><th>Task</th></tr></thead>
+  <tbody>
+  {{#each events}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.kind}}</td>
+      <td>{{this.task_id}}</td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>
+{{/if}}
