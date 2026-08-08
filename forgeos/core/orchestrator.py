@@ -14,6 +14,7 @@ from forgeos.core.verifier import Verifier
 from forgeos.llm.base import LLMClient
 from forgeos.llm.context_manager import ContextManager
 from forgeos.llm.mock import MockLLM
+from forgeos.memory.repository import Repository
 from forgeos.planning.planner import HierarchicalPlanner
 from forgeos.planning.replan import Replanner
 from forgeos.planning.scheduler import Scheduler
@@ -62,6 +63,7 @@ class Orchestrator:
         self.replanner = Replanner(max_attempts=max_attempts)
         self.classifier = FailureClassifier()
         self.verifier = Verifier()
+        self.memory = Repository(self.project)
         self._llm_guard = False
 
     def _with_llm_guard(self, fn):
@@ -72,6 +74,51 @@ class Orchestrator:
             return fn()
         finally:
             self._llm_guard = False
+
+    def _sync_memory(self) -> None:
+        try:
+            self.memory.sync_from_yaml()
+        except FileNotFoundError:
+            return
+
+    def _record_cycle_event(
+        self,
+        *,
+        task_id: str,
+        ok: bool,
+        message: str,
+        failure_class: str = "",
+        kind: str = "cycle",
+    ) -> None:
+        self.memory.add_event(
+            kind=kind,
+            task_id=task_id,
+            payload={
+                "ok": ok,
+                "message": message,
+                "failure_class": failure_class,
+            },
+        )
+
+    def _record_failure_decision(
+        self,
+        *,
+        problem: str,
+        chosen: str,
+        confidence: str,
+        reason: str,
+        evidence: list[str],
+        failure_class: str = "",
+    ) -> None:
+        self.memory.add_decision(
+            problem=problem[:500],
+            options=["retry", "block"],
+            chosen=chosen,
+            confidence=confidence,
+            risk="medium" if chosen == "replan" else "high",
+            reason=reason or failure_class or chosen,
+            evidence=list(evidence),
+        )
 
     def ensure_plan(self, goal: str, *, force: bool = False) -> TaskGraph:
         graph = TaskGraph.load(ws.tasks_path(self.project))
@@ -93,6 +140,7 @@ class Orchestrator:
 
         self._with_llm_guard(_plan)
         graph.save(ws.tasks_path(self.project))
+        self._sync_memory()
         return graph
 
     def run_once(self, goal: str = "Phase 1 stub: write hello report") -> CycleResult:
@@ -109,6 +157,13 @@ class Orchestrator:
             state["tasks"] = counts
             ws.save(self.project, state)
             graph.save(ws.tasks_path(self.project))
+            self._sync_memory()
+            self._record_cycle_event(
+                task_id="",
+                ok=True,
+                message="no READY tasks",
+                kind="cycle",
+            )
             return CycleResult(
                 True,
                 self.project,
@@ -162,6 +217,29 @@ class Orchestrator:
                 role,
                 failure_class=classification.failure_class,
             )
+            chosen = "block" if replan.blocked else "replan"
+            self._sync_memory()
+            self._record_cycle_event(
+                task_id=task.id,
+                ok=False,
+                message=replan.message,
+                failure_class=classification.failure_class,
+                kind="classify" if classification.failure_class else "cycle",
+            )
+            self._record_failure_decision(
+                problem=exec_result.detail,
+                chosen=chosen,
+                confidence=classification.confidence,
+                reason=replan.message,
+                evidence=evidence,
+                failure_class=classification.failure_class,
+            )
+            if replan.fix_task is not None:
+                self.memory.add_event(
+                    kind="replan",
+                    task_id=task.id,
+                    payload={"fix_task_id": replan.fix_task.id, "message": replan.message},
+                )
             return CycleResult(
                 False,
                 self.project,
@@ -180,6 +258,8 @@ class Orchestrator:
         verify = self.verifier.verify(task, observation, exec_observation=exec_obs)
         task.evidence = list(verify.evidence)
         failure_class = ""
+        replan = None
+        classification = None
         if verify.ok:
             task.status = "COMPLETED"
             task.artifacts = [rel_path] if rel_path else list(task.artifacts)
@@ -219,6 +299,30 @@ class Orchestrator:
             role,
             failure_class=failure_class,
         )
+        self._sync_memory()
+        self._record_cycle_event(
+            task_id=task.id,
+            ok=verify.ok,
+            message=message,
+            failure_class=failure_class,
+            kind="verify" if verify.bundle else "cycle",
+        )
+        if not verify.ok and replan is not None and classification is not None:
+            chosen = "block" if replan.blocked else "replan"
+            self._record_failure_decision(
+                problem="; ".join(verify.failures) or message,
+                chosen=chosen,
+                confidence=classification.confidence,
+                reason=replan.message,
+                evidence=evidence,
+                failure_class=failure_class,
+            )
+            if replan.fix_task is not None:
+                self.memory.add_event(
+                    kind="replan",
+                    task_id=task.id,
+                    payload={"fix_task_id": replan.fix_task.id, "message": replan.message},
+                )
         return CycleResult(
             verify.ok,
             self.project,
