@@ -76,6 +76,7 @@ System design lives in `docs/`:
 | [docs/PHASE11.md](docs/PHASE11.md) | Phase 11 Ollama + `/api/v1/ping` what shipped / deferred |
 | [docs/PHASE11B.md](docs/PHASE11B.md) | Phase 11b optional Postgres Compose profile |
 | [docs/PHASE12.md](docs/PHASE12.md) | Phase 12 Next.js frontend slice |
+| [docs/PHASE13.md](docs/PHASE13.md) | Phase 13 autonomy stretch + resource governor |
 | [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) | Step-by-step FastAPI `/health` demo |
 | [docs/demo/OLLAMA_FASTAPI.md](docs/demo/OLLAMA_FASTAPI.md) | Ollama plan + FastAPI demo |
 | [docs/demo/POSTGRES_PROFILE.md](docs/demo/POSTGRES_PROFILE.md) | Postgres profile `db` demo |
@@ -91,7 +92,7 @@ System design lives in `docs/`:
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0–12 CLI including `forgeos dashboard`, `init --scaffold` (`/health` + `/api/v1/ping`), optional `--with-db` / `--with-frontend`, and hardened `plan --llm ollama`. Default `run` uses MockLLM. Multi-step: `forgeos run --steps N`.
+**Runnable today:** Phase 0–13 CLI including `forgeos dashboard`, `init --scaffold`, optional `--with-db` / `--with-frontend`, `plan --template full-pipeline`, and hardened `plan --llm ollama`. Default `run` uses MockLLM. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -224,6 +225,16 @@ forgeos init next-demo --scaffold --with-frontend
 ```
 
 Frontend calls `GET /api/v1/ping`. Planner: `--template fastapi-next-health`. See [docs/demo/NEXT_FRONTEND.md](docs/demo/NEXT_FRONTEND.md) and [docs/PHASE12.md](docs/PHASE12.md).
+
+## Phase 13 — Autonomy stretch
+
+```powershell
+forgeos init auto-demo
+forgeos plan auto-demo --template full-pipeline --force
+forgeos tasks list auto-demo
+```
+
+LLM-first multi-role plans with `full-pipeline` as safety net; hard failures block without `ops-002-fix-N`. See [docs/PHASE13.md](docs/PHASE13.md).
 
 ## Phase 0 — Benchmark
 
