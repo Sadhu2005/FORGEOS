@@ -1,6 +1,8 @@
 # API Versioning
 
-**Scope:** These rules apply to **managed application projects** that FORGEOS builds (FastAPI backends under `projects/<app>/backend/`). They do **not** apply to the FORGEOS engine itself. The engine has no public `/api/v1` HTTP surface in Phase 0–1; do not implement FastAPI routers in this repository until a managed project needs them.
+**Scope:** These rules apply to **managed application projects** that FORGEOS builds (FastAPI backends under `projects/<app>/backend/`). They do **not** apply to the FORGEOS engine itself. The engine dashboard is not an `/api/v1` app API.
+
+Managed scaffolds from Phase 11 include a stub **`GET /api/v1/ping`** plus **`GET /health`** — see [PHASE11.md](PHASE11.md) and `forgeos init --scaffold`.
 
 Public HTTP APIs for managed projects are **versioned in the URL path**. Clients never call unversioned business endpoints.
 

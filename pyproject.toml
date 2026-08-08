@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forgeos"
-version = "1.1.1"
+version = "1.2.0"
 description = "Local AI Engineering Operating System"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,3 +30,6 @@ forgeos = ["dashboard/templates/*.html", "dashboard/static/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "ollama: live Ollama integration (skipped when unreachable)",
+]

@@ -2,6 +2,20 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.2.0] — 2026-08-08
+
+### Added
+
+- Phase 11: Ollama plan harden — coder routing, generate timeout, role/tool validation, seed fallback
+- Scaffold `GET /api/v1/ping` + tests; dashboard Ollama online/offline
+- [docs/demo/OLLAMA_FASTAPI.md](docs/demo/OLLAMA_FASTAPI.md), `scripts/demo_ollama_fastapi.ps1`
+- `forgeos.planning.validate`
+
+### Changed
+
+- Planning model route → `qwen2.5-coder:7b` (was `qwen3:4b` for plan JSON)
+- Package version `1.2.0`
+
 ## [1.1.1] — 2026-08-08
 
 ### Fixed

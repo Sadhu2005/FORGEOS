@@ -15,8 +15,9 @@
 | 9 Dashboard | `feature/phase9-dashboard` | `v1.0.0` | **Shipped** — see [PHASE9.md](PHASE9.md) |
 | 10 Managed app | `feature/phase10-managed-app` | `v1.1.0` | **Shipped** — see [PHASE10.md](PHASE10.md) |
 | 10.1 Patch | `hotfix/v1.1.1-windows-demo-fixes` | `v1.1.1` | **Shipped** — Windows demo/dashboard fixes |
+| 11 Ollama + API | `feature/phase11-ollama-managed-backend` | `v1.2.0` | **Shipped** — see [PHASE11.md](PHASE11.md) |
 
-`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`. Phase 4 ships as `v0.5.0` with freeze branch `release/0.5.0`. Phase 5 ships as `v0.6.0` with freeze branch `release/0.6.0`. Phase 6 ships as `v0.7.0` with freeze branch `release/0.7.0`. Phase 7 ships as `v0.8.0` with freeze branch `release/0.8.0`. Phase 8 ships as `v0.9.0` with freeze branch `release/0.9.0`. Phase 9 ships as `v1.0.0` with freeze branch `release/1.0.0`. Phase 10 ships as `v1.1.0` with freeze branch `release/1.1.0`. Patch `v1.1.1` freezes as `release/1.1.1`.
+`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`. Phase 4 ships as `v0.5.0` with freeze branch `release/0.5.0`. Phase 5 ships as `v0.6.0` with freeze branch `release/0.6.0`. Phase 6 ships as `v0.7.0` with freeze branch `release/0.7.0`. Phase 7 ships as `v0.8.0` with freeze branch `release/0.8.0`. Phase 8 ships as `v0.9.0` with freeze branch `release/0.9.0`. Phase 9 ships as `v1.0.0` with freeze branch `release/1.0.0`. Phase 10 ships as `v1.1.0` with freeze branch `release/1.1.0`. Patch `v1.1.1` freezes as `release/1.1.1`. Phase 11 ships as `v1.2.0` with freeze branch `release/1.2.0`.
 
 ## Phase 1 — V1 CLI Definition of Done
 

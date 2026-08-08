@@ -16,6 +16,7 @@ FORGEOS/
 │   ├── planning/
 │   │   ├── planner.py
 │   │   ├── templates.py       # Phase 10: fastapi-health / ceo seeds
+│   │   ├── validate.py        # Phase 11: LLM task role/tool allowlist
 │   │   ├── task_graph.py
 │   │   ├── scheduler.py
 │   │   └── replan.py
@@ -82,6 +83,7 @@ FORGEOS/
 | `forgeos.intelligence` | 8 | **Present** (`v0.9.0`) |
 | `forgeos.dashboard` | 9 | **Present** (`v1.0.0`) |
 | `forgeos.scaffold` + `planning.templates` | 10 | **Present** (`v1.1.0`) |
+| `forgeos.planning.validate` + Ollama plan harden | 11 | **Present** (`v1.2.0`) |
 
 ## Rules
 

@@ -73,9 +73,10 @@ System design lives in `docs/`:
 | [docs/PHASE8.md](docs/PHASE8.md) | Phase 8 engineering intelligence what shipped / deferred |
 | [docs/PHASE9.md](docs/PHASE9.md) | Phase 9 dashboard what shipped / deferred |
 | [docs/PHASE10.md](docs/PHASE10.md) | Phase 10 managed FastAPI demo what shipped / deferred |
-| [docs/PHASE11.md](docs/PHASE11.md) | Phase 11 draft — Ollama + richer backend |
+| [docs/PHASE11.md](docs/PHASE11.md) | Phase 11 Ollama + `/api/v1/ping` what shipped / deferred |
 | [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) | Step-by-step FastAPI `/health` demo |
-| [docs/PHASES.md](docs/PHASES.md) | Phase 0–10 map, branches, DoD notes |
+| [docs/demo/OLLAMA_FASTAPI.md](docs/demo/OLLAMA_FASTAPI.md) | Ollama plan + FastAPI demo |
+| [docs/PHASES.md](docs/PHASES.md) | Phase 0–11 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
 | [docs/schemas/](docs/schemas/) | World state, task, decision, role schemas |
@@ -86,7 +87,7 @@ System design lives in `docs/`:
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 benchmark + Phase 1–10 CLI including `forgeos dashboard` and `init --scaffold` managed FastAPI demo. Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
+**Runnable today:** Phase 0–11 CLI including `forgeos dashboard`, `init --scaffold` (`/health` + `/api/v1/ping`), and hardened `plan --llm ollama`. Default `run` uses MockLLM. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -190,6 +191,15 @@ forgeos plan health-demo --goal "Create a Python FastAPI project with a /health 
 ```
 
 See [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) and [docs/PHASE10.md](docs/PHASE10.md). `docker.compose_up` requires `forgeos safety approve` before containers start.
+
+## Phase 11 — Ollama plan + `/api/v1/ping`
+
+```powershell
+.\scripts\demo_ollama_fastapi.ps1
+# or: forgeos plan <name> --llm ollama --template fastapi-health --force
+```
+
+Scaffold includes `/health` and `/api/v1/ping`. See [docs/demo/OLLAMA_FASTAPI.md](docs/demo/OLLAMA_FASTAPI.md) and [docs/PHASE11.md](docs/PHASE11.md).
 
 ## Phase 0 — Benchmark
 

@@ -7,11 +7,12 @@ import re
 from pathlib import Path
 from typing import Any
 
-from forgeos.llm.base import LLMClient
+from forgeos.llm.base import LLMClient, LLMError
 from forgeos.llm.mock import MockLLM
 from forgeos.planning.scheduler import Scheduler
 from forgeos.planning.task_graph import Task, TaskGraph
 from forgeos.planning.templates import ceo_report_template, select_template
+from forgeos.planning.validate import validate_llm_tasks
 
 
 def default_template(
@@ -102,21 +103,29 @@ class HierarchicalPlanner:
         force: bool = False,
         template: str | None = None,
         project_root: Path | None = None,
+        roles_dir: Path | None = None,
     ) -> TaskGraph:
         if graph.tasks and not force:
             return graph
         if force:
             graph.tasks.clear()
 
-        llm_text = self.llm.complete(
-            prompt
-            or (
-                "Return a JSON array of tasks with id, description, status, role, "
-                f"priority, dependencies, verification, action. Goal: {goal}"
+        llm_text = ""
+        try:
+            llm_text = self.llm.complete(
+                prompt
+                or (
+                    "Return a JSON array of tasks with id, description, status, role, "
+                    f"priority, dependencies, verification, action. Goal: {goal}"
+                )
             )
-        )
+        except LLMError:
+            llm_text = ""
+
         parsed = _extract_json_array(llm_text)
         built = tasks_from_llm_json(parsed, goal) if parsed else None
+        if built is not None:
+            built = validate_llm_tasks(built, roles_dir)
         seed = built or default_template(goal, template=template, project_root=project_root)
         for task in seed:
             if graph.get(task.id) is None:
@@ -131,10 +140,16 @@ class HierarchicalPlanner:
         *,
         template: str | None = None,
         project_root: Path | None = None,
+        roles_dir: Path | None = None,
     ) -> Task:
         """Back-compat: ensure plan exists, then return next scheduled task."""
         self.ensure_plan(
-            goal, graph, prompt=prompt, template=template, project_root=project_root
+            goal,
+            graph,
+            prompt=prompt,
+            template=template,
+            project_root=project_root,
+            roles_dir=roles_dir,
         )
         nxt = self.scheduler.next_task(graph)
         if nxt is None:
@@ -146,6 +161,7 @@ class HierarchicalPlanner:
                     force=True,
                     template=template,
                     project_root=project_root,
+                    roles_dir=roles_dir,
                 )
                 nxt = self.scheduler.next_task(graph)
         if nxt is None:
