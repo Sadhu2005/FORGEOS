@@ -1,0 +1,18 @@
+<nav class="crumb"><a href="/">Projects</a> / <a href="/p/{{name}}">{{name}}</a> / Audit</nav>
+<h1 class="display-sm">Audit</h1>
+{{#if has_rows}}
+<table class="data">
+  <thead><tr><th>Time</th><th>Kind</th><th>Task</th><th>Message</th></tr></thead>
+  <tbody>
+  {{#each rows}}
+    <tr>
+      <td>{{this.timestamp}}</td>
+      <td>{{this.kind}}</td>
+      <td>{{this.task_id}}</td>
+      <td>{{this.message}}</td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>
+{{/if}}
+<p class="empty-hint">{{empty_hint}}</p>

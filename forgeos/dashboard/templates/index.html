@@ -1,0 +1,22 @@
+<section class="hero">
+  <p class="eyebrow">Local AI Engineering OS</p>
+  <h1 class="display">FORGEOS</h1>
+  <p class="lede">Evidence over opinion. One model. One loop. Your machine.</p>
+</section>
+
+<section class="project-list">
+  <h2>Projects</h2>
+  {{#if has_projects}}
+  <ul class="project-links">
+    {{#each projects}}
+    <li>
+      <a class="project-link" href="/p/{{this.slug}}">
+        <span class="project-name">{{this.name}}</span>
+        <span class="project-meta">{{this.phase}} · {{this.status}}</span>
+      </a>
+    </li>
+    {{/each}}
+  </ul>
+  {{/if}}
+  <p class="empty-hint">{{empty_hint}}</p>
+</section>

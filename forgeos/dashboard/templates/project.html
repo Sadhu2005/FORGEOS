@@ -1,0 +1,55 @@
+<nav class="crumb"><a href="/">Projects</a> / {{name}}</nav>
+
+<section class="project-hero">
+  <h1 class="display-sm">{{name}}</h1>
+  <p class="lede-sm">phase {{phase}} · {{status}}</p>
+</section>
+
+<section class="summary-strip">
+  <div>
+    <span class="label">Tasks</span>
+    <p>{{completed}} done · {{pending}} pending · {{blocked}} blocked · {{task_total}} total</p>
+  </div>
+  <div>
+    <span class="label">Approvals</span>
+    <p><a href="/p/{{name}}/approvals">{{pending_count}} pending</a></p>
+  </div>
+</section>
+
+<section class="intel-block">
+  <h2>Health</h2>
+  <p>tests {{health_passing}}/{{health_total}} passing · failing {{health_failing}} · python {{env_python}} · docker {{env_docker}}</p>
+  <form method="post" action="/p/{{name}}/intel/health" class="inline-form">
+    <button type="submit" class="btn">Refresh health</button>
+  </form>
+</section>
+
+<section class="intel-block">
+  <h2>Debt</h2>
+  <p>score {{debt_score}} · todos {{debt_todo}}</p>
+  <form method="post" action="/p/{{name}}/intel/debt" class="inline-form">
+    <button type="submit" class="btn">Refresh debt</button>
+  </form>
+</section>
+
+<section class="intel-block">
+  <h2>Checkpoint</h2>
+  {{#if has_checkpoints}}
+  <ul class="plain-list">
+    {{#each checkpoints}}
+    <li>{{this.id}} · {{this.message}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+  <form method="post" action="/p/{{name}}/checkpoint" class="inline-form">
+    <input type="text" name="message" placeholder="checkpoint message" />
+    <button type="submit" class="btn">Create checkpoint</button>
+  </form>
+</section>
+
+<nav class="subnav">
+  <a href="/p/{{name}}/tasks">Tasks</a>
+  <a href="/p/{{name}}/approvals">Approvals</a>
+  <a href="/p/{{name}}/memory">Memory</a>
+  <a href="/p/{{name}}/audit">Audit</a>
+</nav>
