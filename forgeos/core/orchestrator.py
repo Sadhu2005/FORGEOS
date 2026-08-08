@@ -146,22 +146,41 @@ class Orchestrator:
         graph = TaskGraph.load(ws.tasks_path(self.project))
         role = load_role(self.workspace, self.role_id)
         plan_template = template if template is not None else self.plan_template
-        from forgeos.planning.templates import is_fastapi_health_goal
+        from forgeos.planning.templates import (
+            is_fastapi_health_goal,
+            is_fastapi_next_health_goal,
+        )
 
-        managed = (plan_template or "").startswith("fastapi") or is_fastapi_health_goal(goal)
+        managed = (
+            (plan_template or "").startswith("fastapi")
+            or is_fastapi_next_health_goal(goal)
+            or is_fastapi_health_goal(goal)
+        )
         prompt = None
         if self.use_context:
-            extra = (
-                "Return a JSON array of multi-role managed-app tasks with concrete action "
-                "objects (filesystem.write, testing.run with cwd=backend, docker.compose_up). "
-                "Use roles software_architect, backend, devops, qa, documentation. "
-                "Do not assign backend/** writes to ceo."
-                if managed
-                else (
+            if managed and (
+                (plan_template or "").startswith("fastapi-next")
+                or is_fastapi_next_health_goal(goal)
+            ):
+                extra = (
+                    "Return a JSON array of multi-role managed-app tasks with concrete action "
+                    "objects (filesystem.write, testing.run with cwd=backend, docker.compose_up). "
+                    "Include a frontend role task under frontend/** that calls /api/v1/ping. "
+                    "Use roles software_architect, backend, frontend, devops, qa, documentation. "
+                    "Do not assign backend/** writes to ceo."
+                )
+            elif managed:
+                extra = (
+                    "Return a JSON array of multi-role managed-app tasks with concrete action "
+                    "objects (filesystem.write, testing.run with cwd=backend, docker.compose_up). "
+                    "Use roles software_architect, backend, devops, qa, documentation. "
+                    "Do not assign backend/** writes to ceo."
+                )
+            else:
+                extra = (
                     "Return JSON tasks with filesystem.write actions under .forge/reports/ "
                     "when possible."
                 )
-            )
             prompt = self.context.build(
                 goal=goal,
                 role_id=role.id,
