@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.error import URLError
+from urllib.request import urlopen
 
 import yaml
 
@@ -46,6 +48,15 @@ class VerifyResult:
     bundle: EvidenceBundle | None = None
 
 
+def _http_get_ok(path: str, *, host: str = "127.0.0.1", port: int = 8000, timeout: float = 2.0) -> bool:
+    url = f"http://{host}:{port}{path if path.startswith('/') else '/' + path}"
+    try:
+        with urlopen(url, timeout=timeout) as resp:  # noqa: S310 — localhost demo only
+            return 200 <= int(getattr(resp, "status", 200)) < 300
+    except (URLError, OSError, TimeoutError, ValueError):
+        return False
+
+
 class Verifier:
     def verify(
         self,
@@ -79,6 +90,22 @@ class Verifier:
                     evidence.append(f"PASS: exit_code={code}")
                 else:
                     failures.append(f"FAIL: exit_code want={expected} got={code}")
+            elif lower in ("pytest_pass", "pytest passes", "pytest passed"):
+                code = exec_obs.exit_code if exec_obs is not None else observation.exit_code
+                ok = code is not None and int(code) == 0
+                checks[item] = ok
+                if ok:
+                    evidence.append(f"PASS: pytest_pass exit_code={code}")
+                else:
+                    failures.append(f"FAIL: pytest_pass exit_code={code}")
+            elif lower.startswith("http_get:"):
+                path = key.split(":", 1)[1].strip() or "/health"
+                ok = _http_get_ok(path)
+                checks[item] = ok
+                if ok:
+                    evidence.append(f"PASS: http_get:{path}")
+                else:
+                    failures.append(f"FAIL: http_get:{path}")
             elif "non-empty" in lower or "non empty" in lower:
                 ok = observation.exists and observation.size > 0
                 checks[item] = ok
