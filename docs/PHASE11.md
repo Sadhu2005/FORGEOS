@@ -50,3 +50,9 @@ Builds on Phase 10 (`v1.1.x`): keep MockLLM as default CLI; harden the **live Ol
 - Scaffold flag: extend `--scaffold` vs `--scaffold fastapi-api`
 - Postgres: compose profile `db` vs separate template
 - Whether dashboard shows “Ollama online” in project overview
+
+## Spike notes (2026-08-08)
+
+- `forgeos llm status`: Ollama reachable; models `qwen2.5-coder:7b`, `qwen3:4b` present.
+- `forgeos plan … --llm ollama` with planning route `qwen3:4b` **hung for 5+ minutes** with no task graph written (likely think/long generation). Kill and fall back to mock for demos until Phase 11 adds timeout + `think: false` / coder model for plan JSON.
+- Short `qwen2.5-coder:7b` complete should be preferred for plan JSON generation in v1.2.0.
