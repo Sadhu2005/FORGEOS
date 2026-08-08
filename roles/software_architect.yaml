@@ -1,0 +1,18 @@
+id: software_architect
+name: Software Architect
+purpose: Produce architecture for frontend, backend, database, API, auth, security, infrastructure.
+writes:
+  - docs/ARCHITECTURE.md
+  - docs/decisions/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+  - research
+  - world_state.read
+forbidden:
+  - write application implementation code
+definition_of_done:
+  - Architecture covers boundaries, stack, API versioning, data stores, security
+  - Frontend Backend Database tasks can become READY
+may_commit_feature_branch: true
+requires_human_for_critical: true

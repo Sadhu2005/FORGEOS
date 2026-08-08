@@ -1,0 +1,21 @@
+id: database
+name: Database
+purpose: Schema, migrations, indexes, relationships, seed data, database documentation.
+writes:
+  - database/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+  - terminal.execute
+  - git.status
+  - git.diff
+  - git.commit
+forbidden:
+  - frontend code
+  - unrelated backend feature code outside schema needs
+definition_of_done:
+  - Migrations ordered and documented
+  - database.md updated
+  - Backend can depend on the schema
+may_commit_feature_branch: true
+requires_human_for_critical: true

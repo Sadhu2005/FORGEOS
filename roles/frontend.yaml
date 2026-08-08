@@ -1,0 +1,25 @@
+id: frontend
+name: Frontend
+purpose: Implement UI against design specs and versioned APIs.
+writes:
+  - frontend/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+  - filesystem.edit
+  - terminal.execute
+  - testing.run
+  - git.status
+  - git.diff
+  - git.commit
+forbidden:
+  - touch backend/
+  - own database schema
+  - production deploy
+  - commit directly to main
+definition_of_done:
+  - Files exist for the task
+  - Frontend tests or build checks pass as specified
+  - Evidence recorded for QA
+may_commit_feature_branch: true
+requires_human_for_critical: true
