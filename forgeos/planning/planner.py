@@ -1,18 +1,19 @@
-"""Phase 1 planner stub — one write-file READY task via MockLLM."""
+"""Phase 1 planner stub — one write-file READY task via LLMClient."""
 
 from __future__ import annotations
 
+from forgeos.llm.base import LLMClient
 from forgeos.llm.mock import MockLLM
 from forgeos.planning.task_graph import Task, TaskGraph
 
 
 class PlannerStub:
-    def __init__(self, llm: MockLLM | None = None) -> None:
+    def __init__(self, llm: LLMClient | None = None) -> None:
         self.llm = llm or MockLLM()
 
-    def plan(self, goal: str, graph: TaskGraph) -> Task:
-        """Ask MockLLM for a plan and add a single READY filesystem.write task."""
-        _ = self.llm.complete(f"plan:{goal}")
+    def plan(self, goal: str, graph: TaskGraph, prompt: str | None = None) -> Task:
+        """Ask LLM for a plan and add a single READY filesystem.write task."""
+        _ = self.llm.complete(prompt or f"plan:{goal}")
         task = Task(
             id="task-001",
             description=f"Write report for goal: {goal}",
