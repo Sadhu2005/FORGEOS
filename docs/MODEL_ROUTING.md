@@ -26,4 +26,4 @@ Hardware baseline: Ryzen 5 3600, 16 GB RAM, GTX 1650 4 GB VRAM. One Ollama model
 
 ## Implementation note
 
-`forgeos.llm.model_router` (Phase 3) must encode these defaults and allow config overrides. Phase 1 may hardcode a single model for the first CLI loop.
+`forgeos.llm.model_router` (Phase 3, shipped in `v0.4.0`) encodes these defaults and allows routing overrides via constructor. Host override: `FORGEOS_OLLAMA_HOST` (default `http://127.0.0.1:11434`). Use `forgeos llm status` / `forgeos run --llm ollama` to exercise the live path; tests default to `MockLLM`.

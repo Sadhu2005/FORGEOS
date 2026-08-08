@@ -2,6 +2,19 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.4.0] — 2026-08-08
+
+### Added
+
+- Phase 3 LLM engine: `LLMClient` protocol, Ollama client, model router, context manager
+- CLI: `forgeos llm status`, `forgeos llm complete`, `forgeos run --llm mock|ollama`
+- [docs/PHASE3.md](docs/PHASE3.md) and [docs/schemas/llm_request.schema.yaml](docs/schemas/llm_request.schema.yaml)
+
+### Changed
+
+- Package version `0.4.0`; dependency `ollama>=0.4.0`
+- Orchestrator/planner typed against `LLMClient` (MockLLM remains default)
+
 ## [0.3.0] — 2026-08-08
 
 ### Added
