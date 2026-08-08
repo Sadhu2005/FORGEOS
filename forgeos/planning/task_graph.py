@@ -1,8 +1,8 @@
-"""Minimal task graph."""
+"""Task graph with dependency helpers."""
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import Any
 
@@ -35,10 +35,15 @@ class Task:
     artifacts: list[str] = field(default_factory=list)
     evidence: list[str] = field(default_factory=list)
     action: dict[str, Any] = field(default_factory=dict)
+    attempts: int = 0
+    last_error: str = ""
 
     def __post_init__(self) -> None:
         if self.status not in STATUSES:
             raise ValueError(f"invalid status: {self.status}")
+
+
+_TASK_FIELD_NAMES = {f.name for f in fields(Task)}
 
 
 class TaskGraph:
@@ -56,12 +61,37 @@ class TaskGraph:
                 return task
         return None
 
+    def deps_completed(self, task: Task) -> bool:
+        for dep_id in task.dependencies:
+            dep = self.get(dep_id)
+            if dep is None or dep.status != "COMPLETED":
+                return False
+        return True
+
+    def promote_ready(self) -> list[str]:
+        """Promote PROPOSED tasks to READY when all dependencies are COMPLETED."""
+        promoted: list[str] = []
+        for task in self.tasks:
+            if task.status != "PROPOSED":
+                continue
+            if self.deps_completed(task):
+                task.status = "READY"
+                promoted.append(task.id)
+        return promoted
+
     def pick_ready(self) -> Task | None:
         ready = [t for t in self.tasks if t.status == "READY"]
         if not ready:
             return None
-        ready.sort(key=lambda t: t.priority)
+        ready.sort(key=lambda t: (t.priority, t.id))
         return ready[0]
+
+    def has_incomplete(self) -> bool:
+        return any(
+            t.status
+            in ("PROPOSED", "READY", "WAITING", "RUNNING", "VERIFYING", "FAILED")
+            for t in self.tasks
+        )
 
     def update_counts(self) -> dict[str, int]:
         completed = sum(1 for t in self.tasks if t.status == "COMPLETED")
@@ -78,7 +108,11 @@ class TaskGraph:
 
     @classmethod
     def from_list(cls, raw: list[dict[str, Any]]) -> TaskGraph:
-        return cls([Task(**item) for item in raw])
+        tasks: list[Task] = []
+        for item in raw:
+            filtered = {k: v for k, v in item.items() if k in _TASK_FIELD_NAMES}
+            tasks.append(Task(**filtered))
+        return cls(tasks)
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
