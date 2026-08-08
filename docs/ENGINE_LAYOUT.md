@@ -46,17 +46,21 @@ FORGEOS/
 
 ## Module ownership by phase
 
-| Package | Phase |
-|---|---|
-| `forgeos.core`, basic CLI, world state I/O | 1 |
-| `forgeos.tools` | 2 |
-| `forgeos.llm` | 3 |
-| `forgeos.planning` | 4 |
-| Verification depth in `core.verifier` | 5 |
-| `forgeos.memory` | 6 |
-| `forgeos.safety` | 7 |
-| Engineering intelligence extras | 8 |
-| Dashboard (separate UI) | 9 |
+| Package | Phase | Status |
+|---|---|---|
+| `forgeos.core`, CLI, world state I/O | 1 | **Present** (`v0.2.0`) |
+| `forgeos.planning` (minimal task graph + stub planner) | 1 | **Present** (full planner still Phase 4) |
+| `forgeos.roles.loader` | 1 | **Present** |
+| `forgeos.llm.mock` | 1 | **Present** (Ollama client Phase 3) |
+| `forgeos.tools.filesystem` (minimal) | 1 | **Present** (full tools Phase 2) |
+| `forgeos.tools` (terminal, git, tests, docker) | 2 | Pending |
+| `forgeos.llm` (Ollama, router, context) | 3 | Pending |
+| `forgeos.planning` (full planner / replan) | 4 | Pending |
+| Verification depth in `core.verifier` | 5 | Pending (basic verifier in Phase 1) |
+| `forgeos.memory` | 6 | Pending |
+| `forgeos.safety` | 7 | Pending |
+| Engineering intelligence extras | 8 | Pending |
+| Dashboard (separate UI) | 9 | Pending |
 
 ## Rules
 

@@ -18,6 +18,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System overview, loop, world state |
 | [docs/ENGINE_LAYOUT.md](docs/ENGINE_LAYOUT.md) | Python package layout for the engine |
 | [docs/MODEL_ROUTING.md](docs/MODEL_ROUTING.md) | Phase 0 model routing lock |
+| [docs/PHASE1.md](docs/PHASE1.md) | Phase 1 what shipped / deferred |
 | [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, Phase 1 DoD |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
@@ -29,31 +30,42 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 hardware/model benchmark (below). Phase 0.5 added contracts. Core orchestrator code starts in Phase 1 on `feature/phase1-core-engine`.
+**Runnable today:** Phase 0 benchmark + Phase 1 core CLI (`forgeos init|run|status`). Ollama is required for Phase 0 benchmarks; Phase 1 uses MockLLM.
 
 ## Requirements
 
-- Windows with [Ollama](https://ollama.com) installed and on `PATH`
+- Windows (developed/tested on Windows)
 - Python 3.12
-- An NVIDIA GPU with `nvidia-smi` available (used for VRAM sampling; the benchmark
-  still runs without it, just without VRAM numbers)
+- For Phase 0 benchmarks: [Ollama](https://ollama.com) on `PATH` and `nvidia-smi` if VRAM metrics are desired
 
 ## Setup
 
 ```powershell
-# Create and activate the virtual environment (already created at .venv if you followed setup)
 python -m venv .venv
 .venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+```
 
-# Install dependencies
-pip install -r requirements.txt
+## Phase 1 — Core CLI
 
-# Pull the benchmark models (only needed once)
+```powershell
+forgeos init demo
+forgeos run demo --goal "write hello report"
+forgeos status demo
+python -m forgeos --version
+pytest
+```
+
+Creates `projects/demo/.forge/state.yaml` and a stub cycle report under `.forge/reports/`.
+
+## Phase 0 — Benchmark
+
+Requires Ollama and benchmark deps (`pip install -r requirements.txt`). Pull models once:
+
+```powershell
 ollama pull qwen3:4b
 ollama pull qwen2.5-coder:7b
 ```
-
-## Phase 0 — Benchmark
 
 Runs a fixed set of `simple` / `coding` / `planning` prompts against each model,
 capturing tokens/sec, time-to-first-token, and CPU/RAM/VRAM deltas.
@@ -77,8 +89,9 @@ Results are written to `benchmarks/phase0/results/`:
 FORGEOS/
 ├── docs/                       # system architecture pack + schemas
 ├── roles/                      # role policy YAML (loaded in Phase 1+)
-├── forgeos/                    # Python package skeleton
-├── projects/                   # managed app sandboxes
+├── forgeos/                    # Python package (Phase 1+ core engine)
+├── tests/                      # pytest suite
+├── projects/                   # managed app sandboxes (gitignored contents)
 ├── benchmarks/
 │   └── phase0/
 │       ├── prompts.py          # fixed benchmark prompt set
