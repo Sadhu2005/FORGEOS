@@ -9,7 +9,7 @@ Branch (during development): `feature/phase9-dashboard`
 - Project list (brand-first home), overview, tasks, approvals, audit, memory
 - Interactive approve/reject (unblocks BLOCKED tasks + audit)
 - Health / debt refresh and checkpoint create from the UI
-- CLI: `forgeos dashboard` (default `http://127.0.0.1:8765/`)
+- CLI: `forgeos dashboard` (default `http://127.0.0.1:18080/`; falls back if the port is blocked)
 - Schema notes: [schemas/dashboard.schema.yaml](schemas/dashboard.schema.yaml)
 
 ## Deferred
@@ -27,5 +27,5 @@ Branch (during development): `feature/phase9-dashboard`
 pip install -e ".[dev]"
 forgeos init demo
 forgeos dashboard
-# open http://127.0.0.1:8765/
+# open http://127.0.0.1:18080/
 ```

@@ -3,7 +3,7 @@
 
 server:
   default_host: 127.0.0.1
-  default_port: 8765
+  default_port: 18080
   allow_remote: explicit opt-in only
 
 routes:

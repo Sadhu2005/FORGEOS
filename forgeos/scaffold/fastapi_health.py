@@ -11,6 +11,11 @@ from fastapi import FastAPI
 app = FastAPI(title="FORGEOS managed demo")
 
 
+@app.get("/")
+def root() -> dict[str, str]:
+    return {"service": "FORGEOS managed demo", "health": "/health"}
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -29,7 +34,19 @@ def test_health() -> None:
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_root() -> None:
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json()["health"] == "/health"
 '''
+
+# Isolate managed-app pytest from the FORGEOS engine pyproject.toml
+PYTEST_INI = """[pytest]
+pythonpath = .
+testpaths = tests
+"""
 
 REQUIREMENTS = """fastapi>=0.110
 uvicorn[standard]>=0.27
@@ -97,7 +114,7 @@ pytest -q
 ```bash
 cd backend
 uvicorn app.main:app --reload --port 8000
-curl http://127.0.0.1:8000/health
+# open http://127.0.0.1:8000/health  (root / only points at /health)
 ```
 
 ## Docker Compose
@@ -136,6 +153,7 @@ def scaffold_fastapi_health(project_root: Path, *, name: str | None = None) -> l
     write("backend/app/main.py", MAIN_PY)
     write("backend/tests/__init__.py", "")
     write("backend/tests/test_health.py", TEST_HEALTH)
+    write("backend/pytest.ini", PYTEST_INI)
     write("backend/requirements.txt", REQUIREMENTS)
     write("docker/Dockerfile.backend", DOCKERFILE)
     write("docker/docker-compose.yml", COMPOSE)

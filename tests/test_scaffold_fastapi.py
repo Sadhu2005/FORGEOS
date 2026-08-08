@@ -15,6 +15,7 @@ def test_scaffold_fastapi_health_tree(workspace: Path) -> None:
     assert "FastAPI" in text
     assert (root / "backend" / "tests" / "test_health.py").is_file()
     assert (root / "backend" / "requirements.txt").is_file()
+    assert (root / "backend" / "pytest.ini").is_file()
     assert (root / "docker" / "Dockerfile.backend").is_file()
     compose = (root / "docker" / "docker-compose.yml").read_text(encoding="utf-8")
     assert "healthcheck" in compose

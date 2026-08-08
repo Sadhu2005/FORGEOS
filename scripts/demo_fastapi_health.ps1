@@ -25,11 +25,11 @@ forgeos safety pending $Name
 
 Write-Host @"
 
-Next:
-  forgeos safety approve $Name --id <id>
+Next (PowerShell — use the real id from pending, do not type angle brackets):
+  forgeos safety approve $Name --id appr-xxxxxxxx
   forgeos run $Name --goal "$Goal" --steps 3 --llm mock
   # If Docker is available, compose_up starts the backend; then:
-  # curl http://127.0.0.1:8000/health
+  # http://127.0.0.1:8000/health
 
 Docs: docs/demo/FASTAPI_HEALTH.md
 "@

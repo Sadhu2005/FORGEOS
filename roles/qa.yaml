@@ -5,6 +5,7 @@ writes:
   - .forge/reports/qa-*
 allowed_tools:
   - filesystem.read
+  - filesystem.write
   - filesystem.search
   - filesystem.tree
   - testing.run

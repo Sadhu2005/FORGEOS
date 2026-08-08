@@ -2,6 +2,20 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.1.1] — 2026-08-08
+
+### Fixed
+
+- Docker tool: UTF-8 decode of compose output on Windows (avoids cp1252 crash)
+- QA role: allow `filesystem.write` for `.forge/reports/qa-*` reports
+- Dashboard: default port `18080` + fallbacks (Windows Hyper-V reserves ~8571–9270)
+- Scaffold: `backend/pytest.ini` so managed-app tests find `app`; root `/` JSON pointer
+- Demo docs/script: PowerShell-safe approval instructions (no angle-bracket placeholders)
+
+### Changed
+
+- Package version `1.1.1`
+
 ## [1.1.0] — 2026-08-08
 
 ### Added
