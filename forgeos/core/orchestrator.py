@@ -85,6 +85,15 @@ class Orchestrator:
         try:
             self.memory.sync_from_yaml()
         except FileNotFoundError:
+            pass
+        self._refresh_intelligence_light()
+
+    def _refresh_intelligence_light(self) -> None:
+        try:
+            from forgeos.intelligence import refresh_light
+
+            refresh_light(self.project)
+        except Exception:
             return
 
     def _record_cycle_event(

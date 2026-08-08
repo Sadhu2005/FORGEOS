@@ -40,6 +40,10 @@ class ContextManager:
         if memory_section:
             sections.append(memory_section)
 
+        intel_section = self._intelligence_section()
+        if intel_section:
+            sections.append(intel_section)
+
         file_blocks: list[str] = []
         if self.project_root and file_paths:
             for rel in file_paths:
@@ -68,6 +72,45 @@ class ContextManager:
             from forgeos.memory.summarizer import Summarizer
 
             return Summarizer(self.project_root).summarize(limit=5)
+        except Exception:
+            return ""
+
+    def _intelligence_section(self) -> str:
+        if self.project_root is None:
+            return ""
+        try:
+            import yaml
+
+            from forgeos.intelligence.debt import debt_path
+            from forgeos.intelligence.health import health_path
+
+            chunks: list[str] = []
+            hp = health_path(self.project_root)
+            if hp.exists():
+                data = yaml.safe_load(hp.read_text(encoding="utf-8")) or {}
+                tests = data.get("tests") or {}
+                env = data.get("environment") or {}
+                chunks.append(
+                    "## Health\n"
+                    f"tests: total={tests.get('total', 0)} "
+                    f"passing={tests.get('passing', 0)} failing={tests.get('failing', 0)}; "
+                    f"python={env.get('python')} docker={env.get('docker')} "
+                    f"compose_ok={env.get('compose_config_ok')}"
+                )
+            dp = debt_path(self.project_root)
+            if dp.exists():
+                data = yaml.safe_load(dp.read_text(encoding="utf-8")) or {}
+                chunks.append(
+                    "## Debt\n"
+                    f"score={data.get('score')} todo={data.get('todo_count', 0)} "
+                    f"fixme={data.get('fixme_count', 0)} blocked={data.get('blocked_tasks', 0)} "
+                    f"approvals={data.get('pending_approvals', 0)} "
+                    f"failing_tests={data.get('failing_tests', 0)}"
+                )
+            text = "\n".join(chunks)
+            if len(text) > 800:
+                return text[:786] + "\n…[truncated]"
+            return text
         except Exception:
             return ""
 
