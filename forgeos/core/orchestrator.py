@@ -10,6 +10,8 @@ from forgeos.core import world_state as ws
 from forgeos.core.executor import Executor
 from forgeos.core.observer import Observer
 from forgeos.core.verifier import Verifier
+from forgeos.llm.base import LLMClient
+from forgeos.llm.context_manager import ContextManager
 from forgeos.llm.mock import MockLLM
 from forgeos.planning.planner import PlannerStub
 from forgeos.planning.task_graph import TaskGraph
@@ -32,13 +34,17 @@ class Orchestrator:
         workspace: Path,
         project_name: str,
         role_id: str = "ceo",
-        llm: MockLLM | None = None,
+        llm: LLMClient | None = None,
+        context: ContextManager | None = None,
+        use_context: bool = False,
     ) -> None:
         self.workspace = workspace.resolve()
         self.project_name = project_name
         self.project = ws.project_root(self.workspace, project_name)
         self.role_id = role_id
         self.llm = llm or MockLLM()
+        self.context = context or ContextManager(project_root=self.project)
+        self.use_context = use_context
         self._llm_guard = False
 
     def _with_llm_guard(self, fn):
@@ -56,15 +62,22 @@ class Orchestrator:
         role = load_role(self.workspace, self.role_id)
 
         planner = PlannerStub(self.llm)
+        prompt = None
+        if self.use_context:
+            prompt = self.context.build(
+                goal=goal,
+                role_id=role.id,
+                allowed_tools=list(role.allowed_tools),
+                extra="Produce a short plan acknowledgment; tools will execute a stub write.",
+            )
 
         def _plan():
-            return planner.plan(goal, graph)
+            return planner.plan(goal, graph, prompt=prompt)
 
         task = self._with_llm_guard(_plan)
         task.status = "RUNNING"
         graph.save(ws.tasks_path(self.project))
 
-        fs = None
         executor = Executor(self.project, role)
         fs = executor.fs
         self._assert_tool_allowed(role, task.action.get("tool", ""))

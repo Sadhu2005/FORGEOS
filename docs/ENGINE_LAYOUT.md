@@ -17,6 +17,8 @@ FORGEOS/
 │   │   ├── task_graph.py
 │   │   └── scheduler.py
 │   ├── llm/
+│   │   ├── base.py            # LLMClient protocol
+│   │   ├── mock.py
 │   │   ├── ollama_client.py
 │   │   ├── model_router.py
 │   │   └── context_manager.py
@@ -53,10 +55,10 @@ FORGEOS/
 | `forgeos.core`, CLI, world state I/O | 1 | **Present** (`v0.2.0`) |
 | `forgeos.planning` (minimal task graph + stub planner) | 1 | **Present** (full planner still Phase 4) |
 | `forgeos.roles.loader` | 1 | **Present** |
-| `forgeos.llm.mock` | 1 | **Present** (Ollama client Phase 3) |
+| `forgeos.llm.mock` | 1 | **Present** |
 | `forgeos.tools.filesystem` | 1–2 | **Present** (Phase 2: edit/search/tree/delete) |
 | `forgeos.tools` (registry, terminal, git, testing, docker) | 2 | **Present** (`v0.3.0`) |
-| `forgeos.llm` (Ollama, router, context) | 3 | Pending |
+| `forgeos.llm` (Ollama, router, context) | 3 | **Present** (`v0.4.0`) |
 | `forgeos.planning` (full planner / replan) | 4 | Pending |
 | Verification depth in `core.verifier` | 5 | Pending (basic verifier in Phase 1) |
 | `forgeos.memory` | 6 | Pending |

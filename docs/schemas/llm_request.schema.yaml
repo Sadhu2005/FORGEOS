@@ -1,0 +1,28 @@
+# LLM request envelope (Phase 3+)
+# Describes inputs to forgeos.llm clients / router
+
+type: object
+required:
+  - prompt
+properties:
+  prompt:
+    type: string
+    description: User / orchestrator prompt text
+  model:
+    type: string
+    description: Optional explicit Ollama model tag
+  task_class:
+    type: string
+    enum:
+      - coding
+      - simple
+      - planning
+    description: Router task class when model is omitted
+  options:
+    type: object
+    description: Backend options (e.g. think: false for qwen3)
+    additionalProperties: true
+  host:
+    type: string
+    description: Ollama host URL (default http://127.0.0.1:11434 or FORGEOS_OLLAMA_HOST)
+additionalProperties: false

@@ -6,7 +6,7 @@
 | 0.5 Preflight | `feature/phase0-5-preflight` | `v0.1.1` | Schemas, role YAMLs, engine layout docs, package skeleton |
 | 1 Core engine | `feature/phase1-core-engine` | `v0.2.0` | **Shipped** — see [PHASE1.md](PHASE1.md) and DoD below |
 | 2 Tool engine | `feature/phase2-tool-engine` | `v0.3.0` | **Shipped** — see [PHASE2.md](PHASE2.md) |
-| 3 LLM engine | `feature/phase3-llm-engine` | `v0.4.0` | Ollama client, router, context builder |
+| 3 LLM engine | `feature/phase3-llm-engine` | `v0.4.0` | **Shipped** — see [PHASE3.md](PHASE3.md) |
 | 4 Planning | `feature/phase4-planning` | `v0.5.0` | Task graph, next-task selection, replan |
 | 5 Verification | `feature/phase5-verification` | `v0.6.0` | Evidence-based DoD checks, failure classify |
 | 6 Memory | `feature/phase6-memory` | `v0.7.0` | SQLite project/task/decision store |
@@ -14,7 +14,7 @@
 | 8 Eng. intelligence | `feature/phase8-engineering-intelligence` | `v0.9.0` | Health/debt/research hooks |
 | 9 Dashboard | `feature/phase9-dashboard` | `v1.0.0` | UI over engine (after CLI solid) |
 
-`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`.
+`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`.
 
 ## Phase 1 — V1 CLI Definition of Done
 

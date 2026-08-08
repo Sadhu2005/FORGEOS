@@ -21,7 +21,7 @@ Branch (during development): `feature/phase2-tool-engine`
 
 | Capability | Phase |
 |---|---|
-| Ollama client + model router | 3 |
+| Ollama client + model router | **3 (shipped in `v0.4.0` — see [PHASE3.md](PHASE3.md))** |
 | Real hierarchical planner / replan | 4 |
 | Rich verification / failure taxonomy | 5 |
 | SQLite memory | 6 |
