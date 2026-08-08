@@ -3,9 +3,16 @@
 from __future__ import annotations
 
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
+import yaml
+
+from forgeos.core import world_state as ws
 from forgeos.tools.base import ToolResult
+
+CHECKPOINTS_FILE = "checkpoints.yaml"
 
 
 class GitDangerousError(PermissionError):
@@ -43,6 +50,22 @@ class GitTool:
         init = self._run(["init"])
         if not init.ok:
             raise RuntimeError(f"git init failed: {init.stderr or init.detail}")
+
+    def current_branch(self) -> str:
+        self.ensure_repo()
+        result = self._run(["rev-parse", "--abbrev-ref", "HEAD"])
+        if result.ok and result.stdout.strip():
+            name = result.stdout.strip()
+            if name != "HEAD":
+                return name
+        return "main"
+
+    def head_sha(self) -> str:
+        self.ensure_repo()
+        result = self._run(["rev-parse", "HEAD"])
+        if result.ok:
+            return result.stdout.strip()
+        return ""
 
     def status(self) -> ToolResult:
         self.ensure_repo()
@@ -93,3 +116,47 @@ class GitTool:
         result = self._run(["commit", "-m", message])
         result.tool = "git.commit"
         return result
+
+    def checkpoints_path(self) -> Path:
+        return ws.forge_dir(self.project_root) / CHECKPOINTS_FILE
+
+    def list_checkpoints(self) -> list[dict[str, Any]]:
+        path = self.checkpoints_path()
+        if not path.exists():
+            return []
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        return list(data.get("checkpoints") or [])
+
+    def checkpoint(self, message: str = "") -> ToolResult:
+        """Record HEAD in .forge/checkpoints.yaml and tag forgeos-ckpt-<utc> when possible."""
+        self.ensure_repo()
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        tag = f"forgeos-ckpt-{stamp}"
+        sha = self.head_sha()
+        tag_created = False
+        if sha:
+            tagged = self._run(["tag", tag])
+            tag_created = tagged.ok
+        entry = {
+            "id": tag,
+            "sha": sha,
+            "message": message or f"checkpoint {stamp}",
+            "tag": tag if tag_created else "",
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        path = self.checkpoints_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        existing = self.list_checkpoints()
+        existing.append(entry)
+        path.write_text(
+            yaml.safe_dump({"checkpoints": existing}, sort_keys=False),
+            encoding="utf-8",
+        )
+        detail = f"sha={sha or '(none)'} tag={tag if tag_created else '(skipped)'}"
+        return ToolResult(
+            True,
+            "git.checkpoint",
+            detail,
+            path=str(path),
+            data=entry,
+        )
