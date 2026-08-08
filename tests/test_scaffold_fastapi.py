@@ -23,6 +23,9 @@ def test_scaffold_fastapi_health_tree(workspace: Path) -> None:
     assert (root / "docker" / "Dockerfile.backend").is_file()
     compose = (root / "docker" / "docker-compose.yml").read_text(encoding="utf-8")
     assert "healthcheck" in compose
+    assert "postgres:" in compose
+    assert 'profiles: ["db"]' in compose
+    assert "psycopg" in (root / "backend" / "requirements.txt").read_text(encoding="utf-8")
     assert (root / "docs" / "ARCHITECTURE.md").is_file()
     assert (root / "docs" / "API.md").is_file()
     assert "/health" in (root / "README.md").read_text(encoding="utf-8")
