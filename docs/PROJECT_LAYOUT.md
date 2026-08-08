@@ -51,15 +51,22 @@ project/
 ## FORGEOS engine vs managed projects
 
 ```text
-FORGEOS/                          # this repository
-├── docs/                         # engine architecture pack
+FORGEOS/                          # this repository (engine)
+├── docs/                         # engine architecture pack + schemas
+├── roles/                        # machine-readable role policies (YAML)
+├── forgeos/                      # Python package (orchestrator starts Phase 1)
 ├── benchmarks/                   # Phase 0, etc.
-├── core/  llm/  tools/  ...      # later phases
-└── projects/                     # optional default sandbox root
-    └── <managed-app>/            # standard tree above
+├── projects/                     # default sandbox root (apps live here)
+│   └── <managed-app>/            # standard tree above — NOT the engine
+└── pyproject.toml
 ```
 
-Managed sandboxes may also live at a configurable absolute path. The engine never treats its own `docs/` pack as an application monorepo.
+| Tree | Who owns it | Phase |
+|---|---|---|
+| `forgeos/`, `docs/`, `roles/`, `benchmarks/` | Engine | Phase 0.5+ |
+| `projects/<app>/frontend|backend|…` | Managed app (roles write here) | When a goal creates an app |
+
+Managed sandboxes may also live at a configurable absolute path. The engine never treats its own `docs/` pack as an application monorepo. Do **not** scaffold Next.js/FastAPI under the engine root; create those only inside `projects/<app>/`.
 
 ## Defaults
 

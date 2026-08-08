@@ -1,5 +1,7 @@
 # API Versioning
 
+**Scope:** These rules apply to **managed application projects** that FORGEOS builds (FastAPI backends under `projects/<app>/backend/`). They do **not** apply to the FORGEOS engine itself. The engine has no public `/api/v1` HTTP surface in Phase 0–1; do not implement FastAPI routers in this repository until a managed project needs them.
+
 Public HTTP APIs for managed projects are **versioned in the URL path**. Clients never call unversioned business endpoints.
 
 ## Locked rules

@@ -127,11 +127,15 @@ Full permissions and handoffs: [ROLES.md](ROLES.md). End-to-end flow: [WORKFLOW.
 | **FORGEOS engine** | Orchestrator, planner, tools, role policies, benchmarks — this repo |
 | **Managed project** | App monorepo (`frontend/`, `backend/`, `database/`, `docker/`, `docs/`, `.forge/`) that FORGEOS creates and drives |
 
-Engine packages (`core/`, `llm/`, `tools/`, `roles/`, …) are implemented in later phases. This document pack defines contracts before that code exists.
+Engine packages live under `forgeos/` (see [ENGINE_LAYOUT.md](ENGINE_LAYOUT.md)). Formal schemas: [schemas/](schemas/). This document pack defines contracts; Phase 1 implements the loop.
 
 ## Related documents
 
+- [ENGINE_LAYOUT.md](ENGINE_LAYOUT.md) — package paths
+- [MODEL_ROUTING.md](MODEL_ROUTING.md) — which local model to use
+- [PHASES.md](PHASES.md) — phase map and Phase 1 DoD
 - [ROLES.md](ROLES.md) — role policies
+- [schemas/](schemas/) — world state / task / decision / role schemas
 - [GIT_AND_RELEASE.md](GIT_AND_RELEASE.md) — branches, tags, SemVer
 - [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md) — monorepo shape
 - [API_VERSIONING.md](API_VERSIONING.md) — `/api/v1` rules
