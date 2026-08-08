@@ -15,12 +15,13 @@ def test_replan_adds_fix_then_blocks() -> None:
     graph.add(task)
     replanner = Replanner(max_attempts=2)
 
-    r1 = replanner.on_failure(graph, task, "boom")
+    r1 = replanner.on_failure(graph, task, "boom", failure_class="logic")
     assert not r1.blocked
     assert r1.fix_task is not None
     assert graph.get(r1.fix_task.id) is not None
     assert task.attempts == 1
     assert task.status == "FAILED"
+    assert task.last_error.startswith("[logic]")
 
     r2 = replanner.on_failure(graph, task, "boom again")
     assert r2.blocked
