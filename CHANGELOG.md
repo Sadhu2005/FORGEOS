@@ -2,6 +2,19 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.5.0] — 2026-08-08
+
+### Added
+
+- Phase 4 planning: scheduler, hierarchical planner, replan with attempt cap
+- CLI: `forgeos plan`, `forgeos tasks list`, `forgeos run --steps`
+- Orchestrator multi-step loop; execute using `task.role`
+- [docs/PHASE4.md](docs/PHASE4.md) and [docs/schemas/plan.schema.yaml](docs/schemas/plan.schema.yaml)
+
+### Changed
+
+- Package version `0.5.0`; default plan is a 2-task `.forge` dependency chain
+
 ## [0.4.0] — 2026-08-08
 
 ### Added
