@@ -64,10 +64,10 @@ def _make_orch(workspace: Path, name: str, args: argparse.Namespace) -> Orchestr
 def cmd_init(args: argparse.Namespace) -> int:
     workspace = _workspace()
     with_db = bool(getattr(args, "with_db", False))
-    do_scaffold = bool(getattr(args, "scaffold", False)) or with_db
-    if with_db and not getattr(args, "scaffold", False):
-        # --with-db implies scaffold
-        do_scaffold = True
+    with_frontend = bool(getattr(args, "with_frontend", False))
+    do_scaffold = (
+        bool(getattr(args, "scaffold", False)) or with_db or with_frontend
+    )
     try:
         root = ws.create_project(workspace, args.name)
     except FileExistsError as exc:
@@ -76,8 +76,18 @@ def cmd_init(args: argparse.Namespace) -> int:
     if do_scaffold:
         from forgeos.scaffold import scaffold_fastapi_health
 
-        written = scaffold_fastapi_health(root, name=args.name, with_db=with_db)
-        extra = " + Postgres profile" if with_db else ""
+        written = scaffold_fastapi_health(
+            root,
+            name=args.name,
+            with_db=with_db,
+            with_frontend=with_frontend,
+        )
+        extras: list[str] = []
+        if with_db:
+            extras.append("Postgres profile")
+        if with_frontend:
+            extras.append("Next.js frontend")
+        extra = f" + {' + '.join(extras)}" if extras else ""
         print(f"scaffolded FastAPI /health tree{extra} ({len(written)} files)")
     print(f"initialized project at {root}")
     print(f"state: {ws.state_path(root)}")
@@ -604,6 +614,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="with scaffold: write .env.example and Postgres profile docs (implies --scaffold)",
     )
+    p_init.add_argument(
+        "--with-frontend",
+        action="store_true",
+        help="with scaffold: write Next.js frontend + compose frontend service (implies --scaffold)",
+    )
     p_init.set_defaults(func=cmd_init)
 
     p_status = sub.add_parser("status", help="show world state summary")
@@ -636,7 +651,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_plan.add_argument("--force", action="store_true", help="replace existing graph")
     p_plan.add_argument(
         "--template",
-        choices=("fastapi-health", "default"),
+        choices=("fastapi-health", "fastapi-next-health", "default"),
         default=None,
         help="seed graph template (default: auto-detect from goal)",
     )
