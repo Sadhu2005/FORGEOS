@@ -12,7 +12,7 @@
 
 - Redis
 - ORM / migrations / Alembic
-- Next.js frontend
+- Next.js frontend (**shipped in Phase 12** — see [PHASE12.md](PHASE12.md))
 - Cloud deploy
 - Auto-wiring backend container `depends_on` + internal hostname (docs use localhost for host uvicorn)
 

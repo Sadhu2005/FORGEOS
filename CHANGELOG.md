@@ -2,6 +2,18 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.4.0] — 2026-08-09
+
+### Added
+
+- Phase 12: optional Next.js frontend slice (`--with-frontend`) + Compose `frontend` service
+- Planner template `fastapi-next-health` (full + short)
+- [docs/PHASE12.md](docs/PHASE12.md), [docs/demo/NEXT_FRONTEND.md](docs/demo/NEXT_FRONTEND.md), `scripts/demo_next_frontend.ps1`
+
+### Changed
+
+- Package version `1.4.0`
+
 ## [1.3.0] — 2026-08-09
 
 ### Added

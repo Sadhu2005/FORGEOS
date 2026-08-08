@@ -12,7 +12,7 @@
 
 ## Deferred
 
-- Next.js frontend / full monorepo UI
+- Next.js frontend / full monorepo UI (**Phase 12 ships optional Next.js slice** — see [PHASE12.md](PHASE12.md))
 - PostgreSQL / Redis for the health demo
 - Replacing MockLLM as the default CLI backend (**Ollama plan path hardened in Phase 11** — see [PHASE11.md](PHASE11.md))
 - Full CEO→…→Reporter autonomous pipeline without templates

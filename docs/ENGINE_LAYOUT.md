@@ -22,7 +22,7 @@ FORGEOS/
 │   │   └── replan.py
 │   ├── scaffold/              # Phase 10+: managed-app tree writers
 │   │   ├── __init__.py
-│   │   └── fastapi_health.py  # scaffold_fastapi_health(..., with_db=False)
+│   │   └── fastapi_health.py  # scaffold_fastapi_health(..., with_db=, with_frontend=)
 │   ├── llm/
 │   │   ├── base.py            # LLMClient protocol
 │   │   ├── mock.py
@@ -85,6 +85,7 @@ FORGEOS/
 | `forgeos.scaffold` + `planning.templates` | 10 | **Present** (`v1.1.0`; Phase 11b: `with_db=`) |
 | `forgeos.planning.validate` + Ollama plan harden | 11 | **Present** (`v1.2.0`) |
 | Compose profile `db` + `/health` database field | 11b | **Present** (`v1.3.0`) |
+| Next.js frontend slice + `fastapi-next-health` | 12 | **Present** (`v1.4.0`) |
 
 ## Rules
 
