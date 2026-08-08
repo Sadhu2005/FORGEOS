@@ -9,6 +9,8 @@ allowed_tools:
   - task_graph.read
   - task_graph.write
   - reports.read
+  - filesystem.read
+  - filesystem.write
 forbidden:
   - write application code under frontend/
   - write application code under backend/
