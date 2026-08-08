@@ -1,0 +1,34 @@
+# FORGEOS approval ticket (Phase 7)
+# Path: projects/<name>/.forge/approvals/<id>.yaml
+
+type: object
+required: [id, project, task_id, tool, fingerprint, status, risk, reason, created_at]
+properties:
+  id: { type: string }
+  project: { type: string }
+  task_id: { type: string }
+  tool: { type: string }
+  fingerprint:
+    type: string
+    description: "<task_id>:<tool>:<path_or_cmd_or_message>"
+  status:
+    type: string
+    enum: [pending, approved, rejected]
+  risk:
+    type: string
+    enum: [low, medium, high, critical]
+  reason: { type: string }
+  created_at: { type: string, format: date-time }
+  resolved_at:
+    type: ["string", "null"]
+    format: date-time
+  action:
+    type: object
+    description: Original tool action payload
+additionalProperties: true
+
+notes:
+  - Gate triggers: task.risk high|critical; tools filesystem.delete|docker.compose_up;
+    git.commit when may_commit_feature_branch=false or branch is main/master.
+  - Audit trail: .forge/audit.jsonl + memory events (permission|approval|checkpoint|audit).
+  - Checkpoints: .forge/checkpoints.yaml + optional git tag forgeos-ckpt-<utc>.

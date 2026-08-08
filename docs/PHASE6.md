@@ -20,7 +20,7 @@ Branch (during development): `feature/phase6-memory`
 | Replace YAML world state entirely | later |
 | Vector / embedding memory | later |
 | Cross-project global DB | later |
-| Approval gates / audit / git checkpoint | 7 |
+| Approval gates / audit / git checkpoint | **7 (shipped in `v0.8.0` — see [PHASE7.md](PHASE7.md))** |
 | Eng-intelligence health/debt hooks | 8 |
 | Dashboard over memory | 9 |
 

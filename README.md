@@ -24,6 +24,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/PHASE4.md](docs/PHASE4.md) | Phase 4 planning what shipped / deferred |
 | [docs/PHASE5.md](docs/PHASE5.md) | Phase 5 verification what shipped / deferred |
 | [docs/PHASE6.md](docs/PHASE6.md) | Phase 6 memory what shipped / deferred |
+| [docs/PHASE7.md](docs/PHASE7.md) | Phase 7 safety what shipped / deferred |
 | [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
@@ -35,7 +36,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 benchmark + Phase 1–6 CLI (`forgeos init|run|status|tools|llm|plan|tasks|classify|verify|memory`). Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
+**Runnable today:** Phase 0 benchmark + Phase 1–7 CLI (`forgeos init|run|status|tools|llm|plan|tasks|classify|verify|memory|safety|checkpoint`). Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -103,6 +104,16 @@ forgeos verify demo --task task-001
 forgeos memory sync demo
 forgeos memory status demo
 forgeos memory decisions demo
+```
+
+## Phase 7 — Safety CLI
+
+```powershell
+forgeos safety pending demo
+forgeos safety approve demo --id appr-...
+forgeos safety audit demo
+forgeos checkpoint create demo --message "pre-change"
+forgeos checkpoint list demo
 ```
 
 ## Phase 0 — Benchmark

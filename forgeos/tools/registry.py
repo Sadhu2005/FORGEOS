@@ -41,8 +41,10 @@ class ToolRegistry:
         self.register("git.diff", self._git_diff)
         self.register("git.branch", self._git_branch)
         self.register("git.commit", self._git_commit)
+        self.register("git.checkpoint", self._git_checkpoint)
         self.register("testing.run", self._testing_run)
         self.register("docker.compose_config", self._docker_compose_config)
+        self.register("docker.compose_up", self._docker_compose_up)
 
     def register(self, name: str, handler: Handler) -> None:
         self._handlers[name] = handler
@@ -126,6 +128,9 @@ class ToolRegistry:
             return ToolResult(False, "git.commit", "missing action.message")
         return self.git.commit(str(message), add_all=bool(action.get("add_all", True)))
 
+    def _git_checkpoint(self, action: dict[str, Any]) -> ToolResult:
+        return self.git.checkpoint(message=str(action.get("message", "")))
+
     def _testing_run(self, action: dict[str, Any]) -> ToolResult:
         args = action.get("args")
         if args is not None and not isinstance(args, list):
@@ -135,6 +140,10 @@ class ToolRegistry:
     def _docker_compose_config(self, action: dict[str, Any]) -> ToolResult:
         compose_file = str(action.get("compose_file", "docker/docker-compose.yml"))
         return self.docker.compose_config(compose_file=compose_file)
+
+    def _docker_compose_up(self, action: dict[str, Any]) -> ToolResult:
+        compose_file = str(action.get("compose_file", "docker/docker-compose.yml"))
+        return self.docker.compose_up(compose_file=compose_file)
 
 
 def default_tool_ids() -> list[str]:
@@ -152,7 +161,9 @@ def default_tool_ids() -> list[str]:
             "git.diff",
             "git.branch",
             "git.commit",
+            "git.checkpoint",
             "testing.run",
             "docker.compose_config",
+            "docker.compose_up",
         ]
     )

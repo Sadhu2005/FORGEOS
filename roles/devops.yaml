@@ -13,11 +13,13 @@ allowed_tools:
   - filesystem.tree
   - filesystem.delete
   - docker.compose_config
+  - docker.compose_up
   - terminal.execute
   - git.status
   - git.diff
   - git.branch
   - git.commit
+  - git.checkpoint
 forbidden:
   - production or cloud deploy without CRITICAL human approval
   - commit directly to main
