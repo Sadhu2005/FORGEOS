@@ -37,13 +37,16 @@ class ModelRouter:
         return self.routing[key]
 
     def options_for(self, task_class: TaskClass | str) -> dict[str, Any]:
-        """Planning / qwen3: think off; planning caps tokens for JSON."""
+        """Planning / qwen3: think off; planning caps tokens; num_ctx from governor."""
+        from forgeos.llm.governor import ResourceGovernor
+
         model = self.select(task_class)
         opts: dict[str, Any] = {}
         if task_class == "planning" or model.startswith("qwen3"):
             opts["think"] = False
         if task_class == "planning":
             opts["num_predict"] = PLAN_NUM_PREDICT
+        opts["num_ctx"] = ResourceGovernor().num_ctx_for(str(task_class))
         return opts
 
     def ensure_model(self, model: str) -> str:
