@@ -74,9 +74,11 @@ System design lives in `docs/`:
 | [docs/PHASE9.md](docs/PHASE9.md) | Phase 9 dashboard what shipped / deferred |
 | [docs/PHASE10.md](docs/PHASE10.md) | Phase 10 managed FastAPI demo what shipped / deferred |
 | [docs/PHASE11.md](docs/PHASE11.md) | Phase 11 Ollama + `/api/v1/ping` what shipped / deferred |
+| [docs/PHASE11B.md](docs/PHASE11B.md) | Phase 11b optional Postgres Compose profile |
 | [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) | Step-by-step FastAPI `/health` demo |
 | [docs/demo/OLLAMA_FASTAPI.md](docs/demo/OLLAMA_FASTAPI.md) | Ollama plan + FastAPI demo |
-| [docs/PHASES.md](docs/PHASES.md) | Phase 0–11 map, branches, DoD notes |
+| [docs/demo/POSTGRES_PROFILE.md](docs/demo/POSTGRES_PROFILE.md) | Postgres profile `db` demo |
+| [docs/PHASES.md](docs/PHASES.md) | Phase 0–11b map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
 | [docs/schemas/](docs/schemas/) | World state, task, decision, role schemas |
@@ -87,7 +89,7 @@ System design lives in `docs/`:
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0–11 CLI including `forgeos dashboard`, `init --scaffold` (`/health` + `/api/v1/ping`), and hardened `plan --llm ollama`. Default `run` uses MockLLM. Multi-step: `forgeos run --steps N`.
+**Runnable today:** Phase 0–11b CLI including `forgeos dashboard`, `init --scaffold` (`/health` + `/api/v1/ping`), optional `--with-db` (Compose profile `db`), and hardened `plan --llm ollama`. Default `run` uses MockLLM. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -200,6 +202,16 @@ See [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) and [docs/PHASE10
 ```
 
 Scaffold includes `/health` and `/api/v1/ping`. See [docs/demo/OLLAMA_FASTAPI.md](docs/demo/OLLAMA_FASTAPI.md) and [docs/PHASE11.md](docs/PHASE11.md).
+
+## Phase 11b — Optional Postgres Compose
+
+```powershell
+forgeos init pg-demo --scaffold --with-db
+.\scripts\demo_postgres_profile.ps1
+# docker compose -f projects\pg-demo\docker\docker-compose.yml --profile db up -d --build
+```
+
+Default compose stays backend-only; Postgres is under profile `db`. See [docs/demo/POSTGRES_PROFILE.md](docs/demo/POSTGRES_PROFILE.md) and [docs/PHASE11B.md](docs/PHASE11B.md).
 
 ## Phase 0 — Benchmark
 
