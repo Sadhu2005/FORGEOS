@@ -2,6 +2,20 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.7.0] — 2026-08-08
+
+### Added
+
+- Phase 6 memory: per-project SQLite (`memory.sqlite`) with project_meta/tasks/decisions/events
+- Repository dual-write from YAML; summarizer hooked into context builder
+- Orchestrator records cycle events and failure decisions
+- CLI: `forgeos memory status`, `forgeos memory decisions`, `forgeos memory sync`
+- [docs/PHASE6.md](docs/PHASE6.md); [docs/schemas/memory.schema.yaml](docs/schemas/memory.schema.yaml)
+
+### Changed
+
+- Package version `0.7.0`
+
 ## [0.6.0] — 2026-08-08
 
 ### Added
