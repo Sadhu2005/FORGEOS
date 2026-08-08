@@ -1,4 +1,4 @@
-"""Model router — task class → local Ollama model (Phase 0 lock)."""
+"""Model router — task class → local Ollama model (Phase 0 + Phase 11 plan JSON)."""
 
 from __future__ import annotations
 
@@ -8,11 +8,14 @@ from forgeos.llm.ollama_client import OllamaClient
 
 TaskClass = Literal["coding", "simple", "planning"]
 
+# Phase 11: planning JSON uses coder (qwen3:4b think hangs on plan).
 DEFAULT_ROUTING: dict[TaskClass, str] = {
     "coding": "qwen2.5-coder:7b",
     "simple": "qwen2.5-coder:7b",
-    "planning": "qwen3:4b",
+    "planning": "qwen2.5-coder:7b",
 }
+
+PLAN_NUM_PREDICT = 768
 
 
 class ModelRouter:
@@ -34,11 +37,13 @@ class ModelRouter:
         return self.routing[key]
 
     def options_for(self, task_class: TaskClass | str) -> dict[str, Any]:
-        """Planning / qwen3: prefer think disabled for latency."""
+        """Planning / qwen3: think off; planning caps tokens for JSON."""
         model = self.select(task_class)
         opts: dict[str, Any] = {}
         if task_class == "planning" or model.startswith("qwen3"):
             opts["think"] = False
+        if task_class == "planning":
+            opts["num_predict"] = PLAN_NUM_PREDICT
         return opts
 
     def ensure_model(self, model: str) -> str:

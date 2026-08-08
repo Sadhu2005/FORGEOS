@@ -1,4 +1,4 @@
-# Model Routing (Phase 0 lock)
+# Model Routing (Phase 0 + Phase 11)
 
 Hardware baseline: Ryzen 5 3600, 16 GB RAM, GTX 1650 4 GB VRAM. One Ollama model loaded at a time.
 
@@ -9,13 +9,14 @@ Hardware baseline: Ryzen 5 3600, 16 GB RAM, GTX 1650 4 GB VRAM. One Ollama model
 | `qwen3:4b` | ~15 tok/s | Fast tokens, but default **thinking** produces long outputs (high total time) |
 | `qwen2.5-coder:7b` | ~6 tok/s | Partial GPU offload; concise answers; better wall-clock for short/coding tasks |
 
-## Locked routing defaults (until re-benchmarked)
+## Locked routing defaults (Phase 11)
 
 | Task class | Model | Notes |
 |---|---|---|
 | Coding (edit, generate, fix) | `qwen2.5-coder:7b` | Prefer for Frontend/Backend/Database coding turns |
 | Simple Q&A / short lookups | `qwen2.5-coder:7b` | Avoids Qwen3 think overhead by default |
-| Planning / architecture | `qwen3:4b` with `think: false` preferred for latency; re-evaluate quality in Phase 4 | If think enabled, expect long runs |
+| Planning / task JSON | `qwen2.5-coder:7b` | **Phase 11:** plan JSON; `think: false` + `num_predict` cap; timeout → seed template |
+| Architecture prose (future) | `qwen3:4b` candidate | Not used for `forgeos plan` JSON until think/latency fixed |
 | Warmup / load | Single active model | Unload previous before switching |
 
 ## Resource rules
@@ -23,7 +24,8 @@ Hardware baseline: Ryzen 5 3600, 16 GB RAM, GTX 1650 4 GB VRAM. One Ollama model
 - Never load two models concurrently.
 - Prefer switching models only at role/task boundaries, not mid-tool-loop.
 - If VRAM/RAM pressure rises: shrink context first, then fall back to the smaller model.
+- Generate timeout: `FORGEOS_OLLAMA_TIMEOUT` (default **120** seconds).
 
 ## Implementation note
 
-`forgeos.llm.model_router` (Phase 3, shipped in `v0.4.0`) encodes these defaults and allows routing overrides via constructor. Host override: `FORGEOS_OLLAMA_HOST` (default `http://127.0.0.1:11434`). Use `forgeos llm status` / `forgeos run --llm ollama` to exercise the live path; tests default to `MockLLM`.
+`forgeos.llm.model_router` encodes these defaults. Host: `FORGEOS_OLLAMA_HOST` (default `http://127.0.0.1:11434`). Use `forgeos llm status` / `forgeos plan --llm ollama`; tests default to `MockLLM`. See [PHASE11.md](PHASE11.md).

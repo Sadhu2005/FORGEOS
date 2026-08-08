@@ -4,23 +4,42 @@ from __future__ import annotations
 
 import os
 import threading
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 from typing import Any
 
 from forgeos.llm.base import LLMError
 
 DEFAULT_HOST = "http://127.0.0.1:11434"
+DEFAULT_TIMEOUT_S = 120.0
 
 
 def default_host() -> str:
     return os.environ.get("FORGEOS_OLLAMA_HOST", DEFAULT_HOST)
 
 
+def default_timeout_s() -> float:
+    raw = os.environ.get("FORGEOS_OLLAMA_TIMEOUT", "")
+    if raw.strip():
+        try:
+            return float(raw)
+        except ValueError:
+            pass
+    return DEFAULT_TIMEOUT_S
+
+
 class OllamaClient:
     """Thin wrapper around ollama.Client with FORGEOS concurrency rules."""
 
-    def __init__(self, host: str | None = None, default_model: str | None = None) -> None:
+    def __init__(
+        self,
+        host: str | None = None,
+        default_model: str | None = None,
+        *,
+        timeout_s: float | None = None,
+    ) -> None:
         self.host = host or default_host()
         self.default_model = default_model or "qwen2.5-coder:7b"
+        self.timeout_s = default_timeout_s() if timeout_s is None else float(timeout_s)
         self._lock = threading.Lock()
         self._in_flight = False
         self.call_count = 0
@@ -76,8 +95,10 @@ class OllamaClient:
         *,
         model: str | None = None,
         options: dict[str, Any] | None = None,
+        timeout_s: float | None = None,
     ) -> str:
         chosen = model or self.default_model
+        wait = self.timeout_s if timeout_s is None else float(timeout_s)
         if not self._lock.acquire(blocking=False):
             raise LLMError("OllamaClient: concurrent call rejected (one LLM at a time)")
         try:
@@ -93,7 +114,6 @@ class OllamaClient:
                 "stream": False,
             }
             if options:
-                # Ollama generate accepts think / options kwargs depending on version
                 if "think" in options:
                     kwargs["think"] = options["think"]
                 extra = {k: v for k, v in options.items() if k != "think"}
@@ -101,7 +121,18 @@ class OllamaClient:
                     kwargs["options"] = extra
             try:
                 client = self._get_client()
-                response = client.generate(**kwargs)
+
+                def _generate() -> Any:
+                    return client.generate(**kwargs)
+
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    fut = pool.submit(_generate)
+                    try:
+                        response = fut.result(timeout=wait)
+                    except FuturesTimeout as exc:
+                        raise LLMError(
+                            f"ollama generate timed out after {wait}s ({chosen})"
+                        ) from exc
             except LLMError:
                 raise
             except Exception as exc:  # noqa: BLE001
