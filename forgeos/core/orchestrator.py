@@ -1,4 +1,4 @@
-"""Orchestrator: PLAN → schedule → ACT → OBSERVE → VERIFY (+ replan)."""
+"""Orchestrator: PLAN → schedule → ACT → OBSERVE → VERIFY (+ classify/replan)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from forgeos.core import world_state as ws
+from forgeos.core.classifier import FailureClassifier
 from forgeos.core.executor import Executor
 from forgeos.core.observer import Observer
 from forgeos.core.verifier import Verifier
@@ -28,6 +29,7 @@ class CycleResult:
     report_path: Path | None
     evidence: list[str]
     message: str
+    failure_class: str = ""
 
 
 @dataclass
@@ -58,6 +60,8 @@ class Orchestrator:
         self.planner = HierarchicalPlanner(self.llm)
         self.scheduler = Scheduler()
         self.replanner = Replanner(max_attempts=max_attempts)
+        self.classifier = FailureClassifier()
+        self.verifier = Verifier()
         self._llm_guard = False
 
     def _with_llm_guard(self, fn):
@@ -122,47 +126,108 @@ class Orchestrator:
         fs = executor.fs
         self._assert_tool_allowed(role, task.action.get("tool", ""))
         exec_result = executor.execute(task.action)
+        observer = Observer(fs)
+
         if not exec_result.ok:
-            replan = self.replanner.on_failure(graph, task, exec_result.detail)
+            classification = self.classifier.classify(
+                exec_result.detail,
+                tool=exec_result.tool,
+                exit_code=exec_result.exit_code,
+            )
+            replan = self.replanner.on_failure(
+                graph,
+                task,
+                exec_result.detail,
+                failure_class=classification.failure_class,
+            )
+            exec_obs = observer.observe_exec(exec_result)
+            verify = self.verifier.verify(task, exec_obs)
+            if verify.bundle:
+                verify.bundle.failure_class = classification.failure_class
+                verify.bundle.write_yaml(ws.reports_dir(self.project))
             counts = graph.update_counts()
             state["tasks"] = counts
             ws.save(self.project, state)
             graph.save(ws.tasks_path(self.project))
-            report = self._write_report(goal, task.id, False, [exec_result.detail, replan.message], role)
+            evidence = [
+                exec_result.detail,
+                f"Failure class: {classification.failure_class} ({classification.confidence})",
+                replan.message,
+            ]
+            report = self._write_report(
+                goal,
+                task.id,
+                False,
+                evidence,
+                role,
+                failure_class=classification.failure_class,
+            )
             return CycleResult(
                 False,
                 self.project,
                 task.id,
                 report,
-                [exec_result.detail],
+                evidence,
                 replan.message,
+                failure_class=classification.failure_class,
             )
 
-        observer = Observer(fs)
         rel_path = str(task.action.get("path", ""))
         observation = observer.observe_file(rel_path)
+        exec_obs = observer.observe_exec(exec_result)
 
         task.status = "VERIFYING"
-        verifier = Verifier()
-        verify = verifier.verify(task, observation)
+        verify = self.verifier.verify(task, observation, exec_observation=exec_obs)
         task.evidence = list(verify.evidence)
+        failure_class = ""
         if verify.ok:
             task.status = "COMPLETED"
-            task.artifacts = [rel_path]
+            task.artifacts = [rel_path] if rel_path else list(task.artifacts)
             message = "cycle completed"
             evidence = list(verify.evidence)
         else:
-            replan = self.replanner.on_failure(graph, task, "; ".join(verify.failures))
+            classification = self.classifier.classify(
+                "; ".join(verify.failures),
+                tool=str(task.action.get("tool", "")),
+                exit_code=exec_result.exit_code,
+            )
+            failure_class = classification.failure_class
+            replan = self.replanner.on_failure(
+                graph,
+                task,
+                "; ".join(verify.failures),
+                failure_class=failure_class,
+            )
             message = replan.message
             evidence = list(verify.evidence) + list(verify.failures)
+            evidence.append(f"Failure class: {failure_class} ({classification.confidence})")
+
+        if verify.bundle:
+            verify.bundle.failure_class = failure_class
+            verify.bundle.write_yaml(ws.reports_dir(self.project))
 
         counts = graph.update_counts()
         state["tasks"] = counts
         ws.save(self.project, state)
         graph.save(ws.tasks_path(self.project))
 
-        report = self._write_report(goal, task.id, verify.ok, evidence, role)
-        return CycleResult(verify.ok, self.project, task.id, report, evidence, message)
+        report = self._write_report(
+            goal,
+            task.id,
+            verify.ok,
+            evidence,
+            role,
+            failure_class=failure_class,
+        )
+        return CycleResult(
+            verify.ok,
+            self.project,
+            task.id,
+            report,
+            evidence,
+            message,
+            failure_class=failure_class,
+        )
 
     def run_steps(self, goal: str, steps: int = 1) -> StepsResult:
         cycles: list[CycleResult] = []
@@ -190,6 +255,8 @@ class Orchestrator:
         ok: bool,
         evidence: list[str],
         role: RolePolicy,
+        *,
+        failure_class: str = "",
     ) -> Path:
         reports = ws.reports_dir(self.project)
         reports.mkdir(parents=True, exist_ok=True)
@@ -204,10 +271,10 @@ class Orchestrator:
             f"Role: {role.id}",
             f"Status: {status}",
             f"Time: {stamp}",
-            "",
-            "## Evidence",
-            "",
         ]
+        if failure_class:
+            lines.append(f"Failure class: {failure_class}")
+        lines.extend(["", "## Evidence", ""])
         lines.extend(f"- {item}" for item in evidence)
         lines.append("")
         path.write_text("\n".join(lines), encoding="utf-8")
