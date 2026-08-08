@@ -70,6 +70,7 @@ class Orchestrator:
         self.memory = Repository(self.project)
         self.approvals = ApprovalStore(self.project)
         self.audit = AuditLog(self.project)
+        self.plan_template: str | None = None
         self._llm_guard = False
 
     def _with_llm_guard(self, fn):
@@ -135,23 +136,48 @@ class Orchestrator:
             evidence=list(evidence),
         )
 
-    def ensure_plan(self, goal: str, *, force: bool = False) -> TaskGraph:
+    def ensure_plan(
+        self,
+        goal: str,
+        *,
+        force: bool = False,
+        template: str | None = None,
+    ) -> TaskGraph:
         graph = TaskGraph.load(ws.tasks_path(self.project))
         role = load_role(self.workspace, self.role_id)
+        plan_template = template if template is not None else self.plan_template
+        from forgeos.planning.templates import is_fastapi_health_goal
+
+        managed = (plan_template or "").startswith("fastapi") or is_fastapi_health_goal(goal)
         prompt = None
         if self.use_context:
+            extra = (
+                "Return a JSON array of multi-role managed-app tasks with concrete action "
+                "objects (filesystem.write, testing.run with cwd=backend, docker.compose_up). "
+                "Use roles software_architect, backend, devops, qa, documentation. "
+                "Do not assign backend/** writes to ceo."
+                if managed
+                else (
+                    "Return JSON tasks with filesystem.write actions under .forge/reports/ "
+                    "when possible."
+                )
+            )
             prompt = self.context.build(
                 goal=goal,
                 role_id=role.id,
                 allowed_tools=list(role.allowed_tools),
-                extra=(
-                    "Return JSON tasks with filesystem.write actions under .forge/reports/ "
-                    "when possible."
-                ),
+                extra=extra,
             )
 
         def _plan():
-            return self.planner.ensure_plan(goal, graph, prompt=prompt, force=force)
+            return self.planner.ensure_plan(
+                goal,
+                graph,
+                prompt=prompt,
+                force=force,
+                template=plan_template,
+                project_root=self.project,
+            )
 
         self._with_llm_guard(_plan)
         graph.save(ws.tasks_path(self.project))

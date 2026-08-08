@@ -137,7 +137,13 @@ class ToolRegistry:
         args = action.get("args")
         if args is not None and not isinstance(args, list):
             return ToolResult(False, "testing.run", "action.args must be a list")
-        return self.testing.run(args=args)
+        cwd = action.get("cwd")
+        path = action.get("path")
+        return self.testing.run(
+            args=args,
+            cwd=str(cwd) if cwd else None,
+            path=str(path) if path else None,
+        )
 
     def _docker_compose_config(self, action: dict[str, Any]) -> ToolResult:
         compose_file = str(action.get("compose_file", "docker/docker-compose.yml"))
@@ -145,7 +151,8 @@ class ToolRegistry:
 
     def _docker_compose_up(self, action: dict[str, Any]) -> ToolResult:
         compose_file = str(action.get("compose_file", "docker/docker-compose.yml"))
-        return self.docker.compose_up(compose_file=compose_file)
+        dry_run = bool(action.get("dry_run", False))
+        return self.docker.compose_up(compose_file=compose_file, dry_run=dry_run)
 
     def _research(self, action: dict[str, Any]) -> ToolResult:
         from forgeos.intelligence.research import search as research_search

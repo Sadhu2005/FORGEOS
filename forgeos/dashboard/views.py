@@ -65,6 +65,12 @@ def project_overview(workspace: Path, name: str) -> dict[str, Any]:
     health = load_yaml_safe(health_path(project))
     debt = load_yaml_safe(debt_path(project))
     checkpoints = GitTool(project).list_checkpoints()[-5:]
+    has_backend = (project / "backend" / "app" / "main.py").is_file()
+    scaffold_hint = ""
+    if not has_backend and len(graph.tasks) == 0:
+        scaffold_hint = (
+            f'Tip: forgeos init {name} --scaffold  (or plan with a FastAPI /health goal)'
+        )
     return {
         "name": name,
         "project": project,
@@ -76,6 +82,8 @@ def project_overview(workspace: Path, name: str) -> dict[str, Any]:
         "health": health,
         "debt": debt,
         "checkpoints": checkpoints,
+        "has_backend": has_backend,
+        "scaffold_hint": scaffold_hint,
     }
 
 

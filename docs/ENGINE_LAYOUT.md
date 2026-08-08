@@ -15,9 +15,13 @@ FORGEOS/
 │   │   └── classifier.py
 │   ├── planning/
 │   │   ├── planner.py
+│   │   ├── templates.py       # Phase 10: fastapi-health / ceo seeds
 │   │   ├── task_graph.py
 │   │   ├── scheduler.py
 │   │   └── replan.py
+│   ├── scaffold/              # Phase 10: managed-app tree writers
+│   │   ├── __init__.py
+│   │   └── fastapi_health.py
 │   ├── llm/
 │   │   ├── base.py            # LLMClient protocol
 │   │   ├── mock.py
@@ -77,6 +81,7 @@ FORGEOS/
 | `forgeos.safety` | 7 | **Present** (`v0.8.0`) |
 | `forgeos.intelligence` | 8 | **Present** (`v0.9.0`) |
 | `forgeos.dashboard` | 9 | **Present** (`v1.0.0`) |
+| `forgeos.scaffold` + `planning.templates` | 10 | **Present** (`v1.1.0`) |
 
 ## Rules
 

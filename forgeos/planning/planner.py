@@ -4,51 +4,24 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from typing import Any
 
 from forgeos.llm.base import LLMClient
 from forgeos.llm.mock import MockLLM
 from forgeos.planning.scheduler import Scheduler
 from forgeos.planning.task_graph import Task, TaskGraph
+from forgeos.planning.templates import ceo_report_template, select_template
 
 
-def default_template(goal: str) -> list[Task]:
-    """Locked Phase 4 demo: phase.md then hello.md under .forge/reports/."""
-    return [
-        Task(
-            id="task-001",
-            description=f"Write phase note for goal: {goal}",
-            status="READY",
-            role="ceo",
-            priority=10,
-            verification=["file exists", "file is non-empty"],
-            action={
-                "tool": "filesystem.write",
-                "path": ".forge/reports/phase.md",
-                "content": (
-                    f"# FORGEOS Phase 4 plan note\n\nGoal: {goal}\n\n"
-                    "Status: phase recorded.\n"
-                ),
-            },
-        ),
-        Task(
-            id="task-002",
-            description=f"Write hello report for goal: {goal}",
-            status="PROPOSED",
-            role="ceo",
-            priority=20,
-            dependencies=["task-001"],
-            verification=["file exists", "file is non-empty"],
-            action={
-                "tool": "filesystem.write",
-                "path": ".forge/reports/hello.md",
-                "content": (
-                    f"# FORGEOS Phase 4 stub report\n\nGoal: {goal}\n\n"
-                    "Status: cycle completed.\n"
-                ),
-            },
-        ),
-    ]
+def default_template(
+    goal: str,
+    *,
+    template: str | None = None,
+    project_root: Path | None = None,
+) -> list[Task]:
+    """Seed tasks: FastAPI multi-role when matched, else Phase 4 CEO reports."""
+    return select_template(goal, template=template, project_root=project_root)
 
 
 def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
@@ -57,12 +30,12 @@ def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
         return None
     try:
         data = json.loads(text)
-        if isinstance(data, list):
-            return data
-        if isinstance(data, dict) and isinstance(data.get("tasks"), list):
-            return data["tasks"]
     except json.JSONDecodeError:
-        pass
+        data = None
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict) and isinstance(data.get("tasks"), list):
+        return data["tasks"]
     match = re.search(r"\[[\s\S]*\]", text)
     if not match:
         return None
@@ -127,6 +100,8 @@ class HierarchicalPlanner:
         *,
         prompt: str | None = None,
         force: bool = False,
+        template: str | None = None,
+        project_root: Path | None = None,
     ) -> TaskGraph:
         if graph.tasks and not force:
             return graph
@@ -142,19 +117,36 @@ class HierarchicalPlanner:
         )
         parsed = _extract_json_array(llm_text)
         built = tasks_from_llm_json(parsed, goal) if parsed else None
-        for task in built or default_template(goal):
+        seed = built or default_template(goal, template=template, project_root=project_root)
+        for task in seed:
             if graph.get(task.id) is None:
                 graph.add(task)
         return graph
 
-    def plan(self, goal: str, graph: TaskGraph, prompt: str | None = None) -> Task:
+    def plan(
+        self,
+        goal: str,
+        graph: TaskGraph,
+        prompt: str | None = None,
+        *,
+        template: str | None = None,
+        project_root: Path | None = None,
+    ) -> Task:
         """Back-compat: ensure plan exists, then return next scheduled task."""
-        self.ensure_plan(goal, graph, prompt=prompt)
+        self.ensure_plan(
+            goal, graph, prompt=prompt, template=template, project_root=project_root
+        )
         nxt = self.scheduler.next_task(graph)
         if nxt is None:
-            # All done or empty — re-seed template if empty
             if not graph.tasks:
-                self.ensure_plan(goal, graph, prompt=prompt, force=True)
+                self.ensure_plan(
+                    goal,
+                    graph,
+                    prompt=prompt,
+                    force=True,
+                    template=template,
+                    project_root=project_root,
+                )
                 nxt = self.scheduler.next_task(graph)
         if nxt is None:
             raise RuntimeError("planner: no READY task available")
@@ -163,3 +155,13 @@ class HierarchicalPlanner:
 
 class PlannerStub(HierarchicalPlanner):
     """Thin alias kept for Phase 1–3 imports."""
+
+
+# Re-export for tests that imported the old helper name
+__all__ = [
+    "HierarchicalPlanner",
+    "PlannerStub",
+    "default_template",
+    "ceo_report_template",
+    "tasks_from_llm_json",
+]

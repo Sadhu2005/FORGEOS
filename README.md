@@ -27,7 +27,9 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/PHASE7.md](docs/PHASE7.md) | Phase 7 safety what shipped / deferred |
 | [docs/PHASE8.md](docs/PHASE8.md) | Phase 8 engineering intelligence what shipped / deferred |
 | [docs/PHASE9.md](docs/PHASE9.md) | Phase 9 dashboard what shipped / deferred |
-| [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, DoD notes |
+| [docs/PHASE10.md](docs/PHASE10.md) | Phase 10 managed FastAPI demo what shipped / deferred |
+| [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) | Step-by-step FastAPI `/health` demo |
+| [docs/PHASES.md](docs/PHASES.md) | Phase 0–10 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
 | [docs/schemas/](docs/schemas/) | World state, task, decision, role schemas |
@@ -38,7 +40,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 benchmark + Phase 1–9 CLI including `forgeos dashboard` (local UI). Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
+**Runnable today:** Phase 0 benchmark + Phase 1–10 CLI including `forgeos dashboard` and `init --scaffold` managed FastAPI demo. Default `run` uses MockLLM; pass `--llm ollama` for the local model path. Multi-step: `forgeos run --steps N`.
 
 ## Requirements
 
@@ -132,6 +134,16 @@ forgeos intelligence research demo --query "architecture"
 forgeos dashboard
 # open http://127.0.0.1:8765/
 ```
+
+## Phase 10 — Managed FastAPI demo
+
+```powershell
+forgeos init health-demo --scaffold
+forgeos plan health-demo --goal "Create a Python FastAPI project with a /health endpoint and tests" --template fastapi-health
+.\scripts\demo_fastapi_health.ps1
+```
+
+See [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) and [docs/PHASE10.md](docs/PHASE10.md). `docker.compose_up` requires `forgeos safety approve` before containers start.
 
 ## Phase 0 — Benchmark
 

@@ -40,14 +40,30 @@ class TerminalTool:
             if pat.search(command):
                 raise TerminalDeniedError(f"command denied by policy: {command}")
 
-    def execute(self, command: str, timeout_s: float | None = None) -> ToolResult:
+    def execute(
+        self,
+        command: str,
+        timeout_s: float | None = None,
+        *,
+        cwd: str | Path | None = None,
+    ) -> ToolResult:
         self._assert_safe(command)
         timeout = timeout_s if timeout_s is not None else self.timeout_s
+        work = self.project_root
+        if cwd is not None:
+            candidate = (self.project_root / Path(cwd)).resolve()
+            try:
+                candidate.relative_to(self.project_root)
+            except ValueError:
+                return ToolResult(False, "terminal.execute", "cwd escapes project")
+            if not candidate.is_dir():
+                return ToolResult(False, "terminal.execute", f"cwd missing: {cwd}")
+            work = candidate
         try:
             completed = subprocess.run(
                 command,
                 shell=True,
-                cwd=str(self.project_root),
+                cwd=str(work),
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -70,5 +86,5 @@ class TerminalTool:
             exit_code=completed.returncode,
             stdout=out,
             stderr=err,
-            data={"cwd": str(self.project_root)},
+            data={"cwd": str(work)},
         )

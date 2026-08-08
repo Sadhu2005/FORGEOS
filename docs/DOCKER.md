@@ -38,6 +38,20 @@ docker/
 
 Root may also reference Compose via `docker compose -f docker/docker-compose.yml` (exact invocation is DevOps-owned).
 
+## Phase 10 backend-only demo
+
+`forgeos init <name> --scaffold` writes a **backend-only** Compose stack:
+
+```text
+docker/
+├── Dockerfile.backend
+└── docker-compose.yml   # service: backend + /health healthcheck
+```
+
+No frontend, Postgres, or Redis for the `/health` demo. `docker.compose_up` is CRITICAL and needs `forgeos safety approve` (or the dashboard Approvals page) before containers start. Action flag `dry_run: true` runs `up -d --dry-run` only.
+
+See [demo/FASTAPI_HEALTH.md](demo/FASTAPI_HEALTH.md).
+
 ## Expected services
 
 | Service | Role |

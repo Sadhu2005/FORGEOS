@@ -26,7 +26,8 @@ Branch (during development): `feature/phase2-tool-engine`
 | Rich verification / failure taxonomy | 5 |
 | SQLite memory | 6 |
 | Approval gates / audit / git checkpoint; `docker compose up` / CRITICAL UI | 7 |
-| Managed FastAPI/Next.js generation as product demo | stretch / later |
+| Managed FastAPI `/health` demo (backend + compose) | **Shipped in Phase 10** — [PHASE10.md](PHASE10.md) |
+| Managed Next.js generation as product demo | stretch / later |
 
 ## Demo
 
