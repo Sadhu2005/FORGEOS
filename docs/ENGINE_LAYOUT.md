@@ -64,7 +64,7 @@ FORGEOS/
 | `forgeos.planning` (scheduler, hierarchical planner, replan) | 4 | **Present** (`v0.5.0`) |
 | `forgeos.core.verifier` + `classifier` | 5 | **Present** (`v0.6.0`) |
 | `forgeos.memory` | 6 | **Present** (`v0.7.0`) |
-| `forgeos.safety` | 7 | Pending |
+| `forgeos.safety` | 7 | **Present** (`v0.8.0`) |
 | Engineering intelligence extras | 8 | Pending |
 | Dashboard (separate UI) | 9 | Pending |
 

@@ -2,6 +2,19 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.8.0] — 2026-08-08
+
+### Added
+
+- Phase 7 safety: permissions gate, file-based approvals, audit JSONL, git checkpoints
+- Tools: `git.checkpoint`, `docker.compose_up` (approval-gated)
+- CLI: `forgeos safety pending|approve|reject|audit`, `forgeos checkpoint create|list`
+- [docs/PHASE7.md](docs/PHASE7.md); [docs/schemas/approval.schema.yaml](docs/schemas/approval.schema.yaml)
+
+### Changed
+
+- Package version `0.8.0`
+
 ## [0.7.0] — 2026-08-08
 
 ### Added
