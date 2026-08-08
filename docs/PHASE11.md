@@ -12,7 +12,7 @@
 ## Deferred
 
 - PostgreSQL / Redis compose profile (**Postgres profile shipped in Phase 11b** — see [PHASE11B.md](PHASE11B.md))
-- Next.js frontend
+- Next.js frontend (**shipped in Phase 12** — see [PHASE12.md](PHASE12.md))
 - Full CEO→…→Reporter autonomy without templates
 - Cloud deploy
 - Making Ollama the default CLI backend

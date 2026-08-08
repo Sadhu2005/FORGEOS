@@ -60,6 +60,24 @@ docker compose -f docker/docker-compose.yml --profile db up -d
 
 No frontend or Redis required for the health demo. See [PHASE11B.md](PHASE11B.md) and [demo/POSTGRES_PROFILE.md](demo/POSTGRES_PROFILE.md).
 
+## Phase 12 frontend slice
+
+`forgeos init <name> --scaffold --with-frontend` adds Next.js under `frontend/` plus Compose `frontend` on `:3000`:
+
+```text
+docker/
+├── Dockerfile.backend
+├── Dockerfile.frontend
+└── docker-compose.yml   # backend + frontend; postgres still --profile db
+```
+
+```bash
+docker compose -f docker/docker-compose.yml up -d --build
+# http://127.0.0.1:3000  → server fetch to backend /api/v1/ping
+```
+
+See [PHASE12.md](PHASE12.md) and [demo/NEXT_FRONTEND.md](demo/NEXT_FRONTEND.md).
+
 ## Expected services
 
 | Service | Role |

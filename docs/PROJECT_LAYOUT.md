@@ -70,7 +70,7 @@ Managed sandboxes may also live at a configurable absolute path. The engine neve
 
 ## Defaults
 
-- **Frontend:** Next.js (optional; not required for Phase 10 health demo)  
+- **Frontend:** Next.js optional via `forgeos init --scaffold --with-frontend` (Phase 12); not required for Phase 10 health demo  
 - **Backend:** FastAPI (`/health` in Phase 10 scaffold; `/api/v1` for fuller apps)  
 - **Database:** PostgreSQL optional via Compose profile `db` (`forgeos init --scaffold --with-db`) — **not** required for `/health`  
 - **Local runtime:** Docker Compose — see [DOCKER.md](DOCKER.md)
