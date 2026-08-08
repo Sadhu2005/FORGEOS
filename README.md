@@ -4,9 +4,26 @@
 
 FORGEOS is a single local LLM (run through [Ollama](https://ollama.com)) wrapped in a
 software-engineering loop — plan, act, observe, verify, replan — instead of a swarm of
-competing agents. See the project design notes in chat/plan history for the full
-architecture. This repository currently contains **Phase 0**: a hardware/model
-benchmark used to decide how FORGEOS should route work between models later on.
+competing agents. Job titles (CEO, PM, Architect, Frontend, QA, …) are **sequential role
+policies**, not concurrent processes.
+
+> FORGEOS does not trust the model. It trusts evidence.
+
+## Architecture
+
+System design lives in `docs/` (contracts for later engine phases):
+
+| Document | Topic |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System overview, loop, world state |
+| [docs/ROLES.md](docs/ROLES.md) | Eleven role policies, permissions, handoffs |
+| [docs/GIT_AND_RELEASE.md](docs/GIT_AND_RELEASE.md) | Trunk-based branches, SemVer tags, hotfixes |
+| [docs/PROJECT_LAYOUT.md](docs/PROJECT_LAYOUT.md) | Managed project monorepo shape |
+| [docs/API_VERSIONING.md](docs/API_VERSIONING.md) | `/api/v1` contract rules |
+| [docs/DOCKER.md](docs/DOCKER.md) | Local Compose topology; Ollama on host |
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
+
+**Runnable today:** Phase 0 hardware/model benchmark (below). Core orchestrator code comes in later phases.
 
 ## Requirements
 
@@ -52,6 +69,7 @@ Results are written to `benchmarks/phase0/results/`:
 
 ```text
 FORGEOS/
+├── docs/                       # system architecture pack
 ├── benchmarks/
 │   └── phase0/
 │       ├── prompts.py          # fixed benchmark prompt set
@@ -63,6 +81,5 @@ FORGEOS/
 └── README.md
 ```
 
-Later phases (core engine, planner, tool protocol, memory, safety) will build on
-whatever this benchmark tells us about model routing, and will land in their own
-plans once Phase 0 numbers are in.
+Later phases (core engine, planner, tool protocol, memory, safety) implement the
+contracts in `docs/` and build on Phase 0 model-routing results.
