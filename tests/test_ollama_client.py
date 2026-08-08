@@ -51,6 +51,31 @@ def test_concurrent_rejected() -> None:
         client._in_flight = False
 
 
+def test_num_predict_in_options() -> None:
+    client = OllamaClient()
+    fake = MagicMock()
+    fake.generate.return_value = {"response": "ok"}
+    client._client = fake
+    client.complete("x", model="qwen2.5-coder:7b", options={"num_predict": 64})
+    assert fake.generate.call_args.kwargs["options"]["num_predict"] == 64
+
+
+def test_complete_timeout_raises() -> None:
+    import time
+
+    client = OllamaClient(timeout_s=0.05)
+    fake = MagicMock()
+
+    def slow(**_kwargs):
+        time.sleep(2)
+        return {"response": "late"}
+
+    fake.generate.side_effect = slow
+    client._client = fake
+    with pytest.raises(LLMError, match="timed out"):
+        client.complete("slow")
+
+
 def test_list_models_error_wrapped() -> None:
     client = OllamaClient(host="http://127.0.0.1:1")
     fake = MagicMock()

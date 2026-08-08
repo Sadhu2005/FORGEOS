@@ -13,7 +13,11 @@ def test_scaffold_fastapi_health_tree(workspace: Path) -> None:
     text = main.read_text(encoding="utf-8")
     assert "/health" in text
     assert "FastAPI" in text
+    assert "/api/v1/ping" in text
     assert (root / "backend" / "tests" / "test_health.py").is_file()
+    assert "test_api_ping" in (root / "backend" / "tests" / "test_health.py").read_text(
+        encoding="utf-8"
+    )
     assert (root / "backend" / "requirements.txt").is_file()
     assert (root / "backend" / "pytest.ini").is_file()
     assert (root / "docker" / "Dockerfile.backend").is_file()
