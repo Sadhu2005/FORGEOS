@@ -18,7 +18,7 @@ Branch (during development): `feature/phase1-core-engine`
 
 | Capability | Phase |
 |---|---|
-| Full terminal / git / docker tools | 2 |
+| Full terminal / git / docker tools | **2 (shipped in `v0.3.0` — see [PHASE2.md](PHASE2.md))** |
 | Ollama client + model router | 3 |
 | Real hierarchical planner / replan | 4 |
 | Rich verification / failure taxonomy | 5 |

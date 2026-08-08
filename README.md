@@ -19,7 +19,8 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/ENGINE_LAYOUT.md](docs/ENGINE_LAYOUT.md) | Python package layout for the engine |
 | [docs/MODEL_ROUTING.md](docs/MODEL_ROUTING.md) | Phase 0 model routing lock |
 | [docs/PHASE1.md](docs/PHASE1.md) | Phase 1 what shipped / deferred |
-| [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, Phase 1 DoD |
+| [docs/PHASE2.md](docs/PHASE2.md) | Phase 2 tool engine what shipped / deferred |
+| [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
 | [roles/](roles/) | Machine-readable role YAML stubs |
 | [docs/schemas/](docs/schemas/) | World state, task, decision, role schemas |
@@ -30,7 +31,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 benchmark + Phase 1 core CLI (`forgeos init|run|status`). Ollama is required for Phase 0 benchmarks; Phase 1 uses MockLLM.
+**Runnable today:** Phase 0 benchmark + Phase 1 core CLI + Phase 2 tools (`forgeos tools …`). Ollama is required for Phase 0 benchmarks; engine cycles still use MockLLM until Phase 3.
 
 ## Requirements
 
@@ -57,6 +58,15 @@ pytest
 ```
 
 Creates `projects/demo/.forge/state.yaml` and a stub cycle report under `.forge/reports/`.
+
+## Phase 2 — Tools CLI
+
+```powershell
+forgeos tools list
+forgeos tools exec demo --role ceo --tool filesystem.tree --arg max_depth=2
+forgeos tools exec demo --role backend --tool git.status
+forgeos run demo --tool-demo
+```
 
 ## Phase 0 — Benchmark
 

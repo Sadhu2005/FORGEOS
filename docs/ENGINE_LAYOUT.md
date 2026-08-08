@@ -21,6 +21,8 @@ FORGEOS/
 │   │   ├── model_router.py
 │   │   └── context_manager.py
 │   ├── tools/
+│   │   ├── base.py            # ToolResult
+│   │   ├── registry.py        # name → handler dispatch
 │   │   ├── filesystem.py
 │   │   ├── terminal.py
 │   │   ├── git.py
@@ -38,7 +40,7 @@ FORGEOS/
 │       └── loader.py          # loads ../../roles/*.yaml
 ├── roles/                     # YAML policies (repo root) — see roles/README.md
 ├── docs/
-│   └── schemas/               # world_state, task, decision, role_policy
+│   └── schemas/               # world_state, task, decision, role_policy, tool_action
 ├── projects/                  # managed app sandboxes
 ├── benchmarks/
 └── pyproject.toml
@@ -52,8 +54,8 @@ FORGEOS/
 | `forgeos.planning` (minimal task graph + stub planner) | 1 | **Present** (full planner still Phase 4) |
 | `forgeos.roles.loader` | 1 | **Present** |
 | `forgeos.llm.mock` | 1 | **Present** (Ollama client Phase 3) |
-| `forgeos.tools.filesystem` (minimal) | 1 | **Present** (full tools Phase 2) |
-| `forgeos.tools` (terminal, git, tests, docker) | 2 | Pending |
+| `forgeos.tools.filesystem` | 1–2 | **Present** (Phase 2: edit/search/tree/delete) |
+| `forgeos.tools` (registry, terminal, git, testing, docker) | 2 | **Present** (`v0.3.0`) |
 | `forgeos.llm` (Ollama, router, context) | 3 | Pending |
 | `forgeos.planning` (full planner / replan) | 4 | Pending |
 | Verification depth in `core.verifier` | 5 | Pending (basic verifier in Phase 1) |

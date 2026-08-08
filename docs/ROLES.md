@@ -54,7 +54,7 @@ HumanGoal
 
 **Writes:** Goal statement, phase list, priority ordering, gate decisions (in world state / `.forge/`).
 
-**Allowed tools:** Read world state, task graph, reports; create/update high-level tasks; set project phase.
+**Allowed tools:** Read world state, task graph, reports; create/update high-level tasks; set project phase; `filesystem.read` / `write` / `search` / `tree` under `.forge/**`.
 
 **Forbidden:** Any application source edits under `frontend/`, `backend/`, `database/` (except metadata FORGEOS owns under `.forge/`).
 
@@ -142,7 +142,7 @@ design/
 
 **Workspace:** `frontend/` only.
 
-**Allowed:** create/edit files under `frontend/`; `npm` / package scripts; frontend tests; commits on `feature/*` branches.
+**Allowed:** create/edit/search/tree/delete under `frontend/`; `terminal.execute`; `testing.run`; `git.status` / `diff` / `branch` / `commit` on `feature/*` branches.
 
 **Forbidden:** `backend/`, `database/` schema ownership, production deploy, commits directly to `main`.
 
@@ -156,7 +156,7 @@ design/
 
 **Workspace:** `backend/` (may coordinate with Database role for migrations; does not own `design/`).
 
-**Allowed:** create APIs under `/api/v1`; models; business logic; pytest; apply migrations in sandbox; commits on `feature/*`.
+**Allowed:** create APIs under `/api/v1`; models; business logic; `filesystem.*` under `backend/`; `terminal.execute`; `testing.run` (pytest); `git.status` / `diff` / `branch` / `commit` on `feature/*`.
 
 **Forbidden:** `frontend/` edits, production deploy, direct commits to `main`.
 
@@ -179,6 +179,8 @@ database/
 └── database.md
 ```
 
+**Allowed tools (Phase 2):** `filesystem.*` under `database/`; `terminal.execute`; `git.status` / `diff` / `branch` / `commit`.
+
 **Forbidden:** Frontend code; unrelated backend feature code outside migration/schema needs.
 
 **Definition of Done:** Migration set is ordered and documented; `database.md` updated; Backend can depend on the schema.
@@ -191,7 +193,7 @@ database/
 
 **Writes:** QA reports only (e.g. `.forge/reports/qa-<id>.md`).
 
-**May run:** `pytest`, `npm test`, `npm run build`, linters (`ruff`, `eslint`), `docker compose config`, local health checks when defined.
+**May run:** `testing.run` (pytest), `terminal.execute`, `docker.compose_config`, local health checks when defined; `filesystem.read` / `search` / `tree`.
 
 **Forbidden:** Shipping “fixes” as silent edits to greenwash results. Failures open fix tasks for coding roles.
 
@@ -215,7 +217,7 @@ Recommendation: Fix before merge/release.
 
 **Writes:** `docker/`, CI workflows (when present), `.env.example`.
 
-**Allowed:** `docker compose` up/down/config locally.
+**Allowed:** `docker.compose_config` and `terminal.execute` locally; `filesystem.*` under `docker/` (and CI/env templates); `git.status` / `diff` / `branch` / `commit`. Compose **up/down** remains a later safety-gated capability.
 
 **Forbidden:** Production/cloud deploy without CRITICAL human approval.
 
