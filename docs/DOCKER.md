@@ -40,17 +40,25 @@ Root may also reference Compose via `docker compose -f docker/docker-compose.yml
 
 ## Phase 10 backend-only demo
 
-`forgeos init <name> --scaffold` writes a **backend-only** Compose stack:
+`forgeos init <name> --scaffold` writes a **backend-only** Compose stack by default, plus an optional **Postgres** service under profile **`db`** (Phase 11b):
 
 ```text
 docker/
 ├── Dockerfile.backend
-└── docker-compose.yml   # service: backend + /health healthcheck
+└── docker-compose.yml   # backend always; postgres with --profile db
 ```
 
-No frontend, Postgres, or Redis for the `/health` demo. `docker.compose_up` is CRITICAL and needs `forgeos safety approve` (or the dashboard Approvals page) before containers start. Action flag `dry_run: true` runs `up -d --dry-run` only.
+```bash
+# backend only
+docker compose -f docker/docker-compose.yml up -d
 
-See [demo/FASTAPI_HEALTH.md](demo/FASTAPI_HEALTH.md).
+# backend + postgres
+docker compose -f docker/docker-compose.yml --profile db up -d
+```
+
+`forgeos init <name> --scaffold --with-db` also writes `.env.example` with `DATABASE_URL`.
+
+No frontend or Redis required for the health demo. See [PHASE11B.md](PHASE11B.md) and [demo/POSTGRES_PROFILE.md](demo/POSTGRES_PROFILE.md).
 
 ## Expected services
 

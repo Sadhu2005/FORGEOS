@@ -2,6 +2,19 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.3.0] — 2026-08-09
+
+### Added
+
+- Phase 11b: optional Compose Postgres profile `db` on managed scaffolds
+- CLI: `forgeos init --scaffold --with-db` (writes `.env.example`)
+- `/health` reports `database: skipped|ok|error` via optional `DATABASE_URL`
+- [docs/PHASE11B.md](docs/PHASE11B.md), [docs/demo/POSTGRES_PROFILE.md](docs/demo/POSTGRES_PROFILE.md), `scripts/demo_postgres_profile.ps1`
+
+### Changed
+
+- Package version `1.3.0`
+
 ## [1.2.0] — 2026-08-08
 
 ### Added

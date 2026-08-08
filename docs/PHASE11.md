@@ -11,7 +11,7 @@
 
 ## Deferred
 
-- PostgreSQL / Redis compose profile
+- PostgreSQL / Redis compose profile (**Postgres profile shipped in Phase 11b** — see [PHASE11B.md](PHASE11B.md))
 - Next.js frontend
 - Full CEO→…→Reporter autonomy without templates
 - Cloud deploy

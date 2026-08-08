@@ -63,16 +63,22 @@ def _make_orch(workspace: Path, name: str, args: argparse.Namespace) -> Orchestr
 
 def cmd_init(args: argparse.Namespace) -> int:
     workspace = _workspace()
+    with_db = bool(getattr(args, "with_db", False))
+    do_scaffold = bool(getattr(args, "scaffold", False)) or with_db
+    if with_db and not getattr(args, "scaffold", False):
+        # --with-db implies scaffold
+        do_scaffold = True
     try:
         root = ws.create_project(workspace, args.name)
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    if getattr(args, "scaffold", False):
+    if do_scaffold:
         from forgeos.scaffold import scaffold_fastapi_health
 
-        written = scaffold_fastapi_health(root, name=args.name)
-        print(f"scaffolded FastAPI /health tree ({len(written)} files)")
+        written = scaffold_fastapi_health(root, name=args.name, with_db=with_db)
+        extra = " + Postgres profile" if with_db else ""
+        print(f"scaffolded FastAPI /health tree{extra} ({len(written)} files)")
     print(f"initialized project at {root}")
     print(f"state: {ws.state_path(root)}")
     return 0
@@ -592,6 +598,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--scaffold",
         action="store_true",
         help="also write minimal FastAPI /health + docker + docs tree",
+    )
+    p_init.add_argument(
+        "--with-db",
+        action="store_true",
+        help="with scaffold: write .env.example and Postgres profile docs (implies --scaffold)",
     )
     p_init.set_defaults(func=cmd_init)
 
