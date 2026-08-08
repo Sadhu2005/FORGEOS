@@ -67,9 +67,10 @@ def _unload_scaffold_app(root: Path) -> None:
             del sys.modules[mod]
 
 
-def test_health_skipped_without_url(workspace: Path) -> None:
+def test_health_skipped_without_url(workspace: Path, monkeypatch) -> None:
     root = ws.create_project(workspace, "db3")
     scaffold_fastapi_health(root)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
     try:
         app_main = _load_scaffold_app(root)
         assert app_main._database_status() == "skipped"
