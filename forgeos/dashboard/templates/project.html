@@ -5,6 +5,10 @@
   <p class="lede-sm">phase {{phase}} · {{status}}</p>
 </section>
 
+{{#if has_scaffold_hint}}
+<p class="empty-hint">{{scaffold_hint}}</p>
+{{/if}}
+
 <section class="summary-strip">
   <div>
     <span class="label">Tasks</span>

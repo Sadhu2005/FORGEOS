@@ -109,6 +109,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 debt_todo=debt.get("todo_count", "—"),
                 checkpoints=ov["checkpoints"],
                 has_checkpoints=bool(ov["checkpoints"]),
+                scaffold_hint=ov.get("scaffold_hint") or "",
+                has_scaffold_hint=bool(ov.get("scaffold_hint")),
             )
             self._send(200, html.encode("utf-8"))
             return
