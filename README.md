@@ -16,14 +16,20 @@ System design lives in `docs/` (contracts for later engine phases):
 | Document | Topic |
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System overview, loop, world state |
-| [docs/ROLES.md](docs/ROLES.md) | Eleven role policies, permissions, handoffs |
+| [docs/ENGINE_LAYOUT.md](docs/ENGINE_LAYOUT.md) | Python package layout for the engine |
+| [docs/MODEL_ROUTING.md](docs/MODEL_ROUTING.md) | Phase 0 model routing lock |
+| [docs/PHASES.md](docs/PHASES.md) | Phase 0–9 map, branches, Phase 1 DoD |
+| [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
+| [roles/](roles/) | Machine-readable role YAML stubs |
+| [docs/schemas/](docs/schemas/) | World state, task, decision, role schemas |
 | [docs/GIT_AND_RELEASE.md](docs/GIT_AND_RELEASE.md) | Trunk-based branches, SemVer tags, hotfixes |
 | [docs/PROJECT_LAYOUT.md](docs/PROJECT_LAYOUT.md) | Managed project monorepo shape |
-| [docs/API_VERSIONING.md](docs/API_VERSIONING.md) | `/api/v1` contract rules |
-| [docs/DOCKER.md](docs/DOCKER.md) | Local Compose topology; Ollama on host |
+| [docs/API_VERSIONING.md](docs/API_VERSIONING.md) | `/api/v1` for managed apps (not engine) |
+| [docs/DOCKER.md](docs/DOCKER.md) | Local Compose for managed apps; Ollama on host |
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Goal → report end-to-end pipeline |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
 
-**Runnable today:** Phase 0 hardware/model benchmark (below). Core orchestrator code comes in later phases.
+**Runnable today:** Phase 0 hardware/model benchmark (below). Phase 0.5 added contracts. Core orchestrator code starts in Phase 1 on `feature/phase1-core-engine`.
 
 ## Requirements
 
@@ -69,7 +75,10 @@ Results are written to `benchmarks/phase0/results/`:
 
 ```text
 FORGEOS/
-├── docs/                       # system architecture pack
+├── docs/                       # system architecture pack + schemas
+├── roles/                      # role policy YAML (loaded in Phase 1+)
+├── forgeos/                    # Python package skeleton
+├── projects/                   # managed app sandboxes
 ├── benchmarks/
 │   └── phase0/
 │       ├── prompts.py          # fixed benchmark prompt set
@@ -77,9 +86,10 @@ FORGEOS/
 │       ├── bench.py            # benchmark runner
 │       ├── report.py           # results -> terminal + markdown report
 │       └── results/            # output directory
+├── pyproject.toml
+├── CHANGELOG.md
 ├── requirements.txt
 └── README.md
 ```
 
-Later phases (core engine, planner, tool protocol, memory, safety) implement the
-contracts in `docs/` and build on Phase 0 model-routing results.
+Later phases implement the contracts in `docs/` / `roles/` inside `forgeos/` and build on Phase 0 model-routing results. See [docs/PHASES.md](docs/PHASES.md).
