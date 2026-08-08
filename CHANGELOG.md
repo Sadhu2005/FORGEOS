@@ -2,6 +2,21 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.2.0] — 2026-08-08
+
+### Added
+
+- Phase 1 core engine: CLI (`init` / `run` / `status`), world state, task graph
+- Role YAML loader with allowlist enforcement
+- One PLAN → ACT → OBSERVE → VERIFY cycle with MockLLM
+- Minimal filesystem tool; reports under `.forge/reports/`
+- Pytest suite for core paths
+- [docs/PHASE1.md](docs/PHASE1.md)
+
+### Changed
+
+- Package version `0.2.0`; `ceo` role allows `filesystem.read` / `filesystem.write` for `.forge/**` writes
+
 ## [0.1.1] — 2026-08-08
 
 ### Added

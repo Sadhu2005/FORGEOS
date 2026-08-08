@@ -127,10 +127,11 @@ Full permissions and handoffs: [ROLES.md](ROLES.md). End-to-end flow: [WORKFLOW.
 | **FORGEOS engine** | Orchestrator, planner, tools, role policies, benchmarks — this repo |
 | **Managed project** | App monorepo (`frontend/`, `backend/`, `database/`, `docker/`, `docs/`, `.forge/`) that FORGEOS creates and drives |
 
-Engine packages live under `forgeos/` (see [ENGINE_LAYOUT.md](ENGINE_LAYOUT.md)). Formal schemas: [schemas/](schemas/). This document pack defines contracts; Phase 1 implements the loop.
+**Runnable today:** Phase 0 benchmark + Phase 1 CLI. Core loop starts via `forgeos run` (MockLLM in Phase 1; Ollama in Phase 3). See [PHASE1.md](PHASE1.md).
 
 ## Related documents
 
+- [PHASE1.md](PHASE1.md) — Phase 1 ship notes
 - [ENGINE_LAYOUT.md](ENGINE_LAYOUT.md) — package paths
 - [MODEL_ROUTING.md](MODEL_ROUTING.md) — which local model to use
 - [PHASES.md](PHASES.md) — phase map and Phase 1 DoD
