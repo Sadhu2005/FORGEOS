@@ -2,6 +2,19 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.6.0] — 2026-08-08
+
+### Added
+
+- Phase 5 verification: richer DoD checks, evidence YAML bundles, failure classifier
+- CLI: `forgeos classify`, `forgeos verify`
+- Orchestrator stamps failure class into reports and replan artifacts
+- [docs/PHASE5.md](docs/PHASE5.md); schemas for verify_result and failure
+
+### Changed
+
+- Package version `0.6.0`
+
 ## [0.5.0] — 2026-08-08
 
 ### Added

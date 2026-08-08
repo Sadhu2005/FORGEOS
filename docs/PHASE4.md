@@ -19,7 +19,7 @@ Branch (during development): `feature/phase4-planning`
 
 | Capability | Phase |
 |---|---|
-| Rich failure classification taxonomy | 5 |
+| Rich failure classification taxonomy | **5 (shipped in `v0.6.0` — see [PHASE5.md](PHASE5.md))** |
 | SQLite memory | 6 |
 | Approval gates / audit / git checkpoint | 7 |
 | Full 11-role autonomous product pipeline | later |

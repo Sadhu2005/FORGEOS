@@ -1,0 +1,33 @@
+# Failure classification (Phase 5+)
+
+type: object
+required:
+  - failure_class
+  - confidence
+  - reason
+properties:
+  failure_class:
+    type: string
+    enum:
+      - syntax
+      - dependency
+      - logic
+      - env
+      - permission
+      - timeout
+      - unknown
+  confidence:
+    type: string
+    enum:
+      - HIGH
+      - MEDIUM
+      - LOW
+  reason:
+    type: string
+  tool:
+    type: string
+  exit_code:
+    type: ["integer", "null"]
+  message:
+    type: string
+additionalProperties: true

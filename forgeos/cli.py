@@ -9,8 +9,11 @@ from pathlib import Path
 
 from forgeos import __version__
 from forgeos.core import world_state as ws
+from forgeos.core.classifier import FailureClassifier
 from forgeos.core.executor import Executor
+from forgeos.core.observer import Observer
 from forgeos.core.orchestrator import Orchestrator
+from forgeos.core.verifier import Verifier
 from forgeos.llm.base import LLMClient, LLMError
 from forgeos.llm.context_manager import ContextManager
 from forgeos.llm.mock import MockLLM
@@ -246,6 +249,48 @@ def cmd_llm_complete(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_classify(args: argparse.Namespace) -> int:
+    result = FailureClassifier().classify(
+        args.error,
+        tool=args.tool,
+        exit_code=args.exit_code,
+    )
+    print(f"class: {result.failure_class}")
+    print(f"confidence: {result.confidence}")
+    print(f"reason: {result.reason}")
+    return 0
+
+
+def cmd_verify(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    graph = TaskGraph.load(ws.tasks_path(project))
+    task = graph.get(args.task)
+    if task is None:
+        print(f"error: task not found: {args.task}", file=sys.stderr)
+        return 1
+    role = load_role(workspace, task.role or "ceo")
+    fs = Executor(project, role).fs
+    observer = Observer(fs)
+    rel_path = str(task.action.get("path", ""))
+    observation = observer.observe_file(rel_path) if rel_path else observer.observe_file("")
+    verify = Verifier().verify(task, observation)
+    status = "PASS" if verify.ok else "FAIL"
+    print(f"task: {task.id}")
+    print(f"status: {status}")
+    for item in verify.evidence:
+        print(f"  {item}")
+    for item in verify.failures:
+        print(f"  {item}")
+    if verify.bundle:
+        path = verify.bundle.write_yaml(ws.reports_dir(project))
+        print(f"evidence: {path}")
+    return 0 if verify.ok else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forgeos",
@@ -327,6 +372,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="routing task class (default: simple)",
     )
     p_llm_complete.set_defaults(func=cmd_llm_complete)
+
+    p_classify = sub.add_parser("classify", help="classify a failure message")
+    p_classify.add_argument("--error", required=True, help="error / failure text")
+    p_classify.add_argument("--tool", default=None, help="optional tool id")
+    p_classify.add_argument("--exit-code", type=int, default=None, dest="exit_code")
+    p_classify.set_defaults(func=cmd_classify)
+
+    p_verify = sub.add_parser("verify", help="re-verify a task DoD against the project")
+    p_verify.add_argument("name", help="project name")
+    p_verify.add_argument("--task", required=True, help="task id")
+    p_verify.set_defaults(func=cmd_verify)
 
     return parser
 
