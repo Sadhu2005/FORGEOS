@@ -7,10 +7,14 @@ allowed_tools:
   - filesystem.read
   - filesystem.write
   - filesystem.edit
+  - filesystem.search
+  - filesystem.tree
+  - filesystem.delete
   - terminal.execute
   - testing.run
   - git.status
   - git.diff
+  - git.branch
   - git.commit
 forbidden:
   - touch backend/

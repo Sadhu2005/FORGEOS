@@ -5,6 +5,8 @@ writes:
   - .forge/reports/qa-*
 allowed_tools:
   - filesystem.read
+  - filesystem.search
+  - filesystem.tree
   - testing.run
   - terminal.execute
   - docker.compose_config
