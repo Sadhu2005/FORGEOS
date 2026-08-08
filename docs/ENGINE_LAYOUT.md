@@ -40,6 +40,10 @@ FORGEOS/
 │   │   ├── permissions.py
 │   │   ├── approval.py
 │   │   └── audit.py
+│   ├── intelligence/
+│   │   ├── health.py
+│   │   ├── debt.py
+│   │   └── research.py
 │   └── roles/
 │       └── loader.py          # loads ../../roles/*.yaml
 ├── roles/                     # YAML policies (repo root) — see roles/README.md
@@ -65,7 +69,7 @@ FORGEOS/
 | `forgeos.core.verifier` + `classifier` | 5 | **Present** (`v0.6.0`) |
 | `forgeos.memory` | 6 | **Present** (`v0.7.0`) |
 | `forgeos.safety` | 7 | **Present** (`v0.8.0`) |
-| Engineering intelligence extras | 8 | Pending |
+| `forgeos.intelligence` | 8 | **Present** (`v0.9.0`) |
 | Dashboard (separate UI) | 9 | Pending |
 
 ## Rules
