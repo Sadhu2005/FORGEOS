@@ -15,6 +15,7 @@ class ContextManager:
 
     budget: int = DEFAULT_BUDGET
     project_root: Path | None = None
+    include_memory: bool = True
 
     def build(
         self,
@@ -34,6 +35,10 @@ class ContextManager:
         ]
         if extra:
             sections.append(extra.strip())
+
+        memory_section = self._memory_section()
+        if memory_section:
+            sections.append(memory_section)
 
         file_blocks: list[str] = []
         if self.project_root and file_paths:
@@ -55,6 +60,16 @@ class ContextManager:
         body = "\n\n".join(file_blocks)
         prompt = header if not body else f"{header}\n\n{body}"
         return self._truncate(prompt)
+
+    def _memory_section(self) -> str:
+        if not self.include_memory or self.project_root is None:
+            return ""
+        try:
+            from forgeos.memory.summarizer import Summarizer
+
+            return Summarizer(self.project_root).summarize(limit=5)
+        except Exception:
+            return ""
 
     def _truncate(self, prompt: str) -> str:
         if len(prompt) <= self.budget:
