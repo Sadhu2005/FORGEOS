@@ -1,0 +1,56 @@
+# FORGEOS engineering intelligence artifacts (Phase 8)
+# Paths: projects/<name>/.forge/health.yaml and .forge/debt.yaml
+
+health:
+  type: object
+  required: [timestamp, tests, environment]
+  properties:
+    timestamp: { type: string, format: date-time }
+    tests:
+      type: object
+      properties:
+        total: { type: integer }
+        passing: { type: integer }
+        failing: { type: integer }
+        detail: { type: string }
+    environment:
+      type: object
+      properties:
+        python: { type: string }
+        docker: { type: boolean }
+        compose_config_ok: { type: boolean }
+    notes:
+      type: array
+      items: { type: string }
+
+debt:
+  type: object
+  required: [timestamp, todo_count, fixme_count, blocked_tasks, pending_approvals, failing_tests, score]
+  properties:
+    timestamp: { type: string, format: date-time }
+    todo_count: { type: integer }
+    fixme_count: { type: integer }
+    blocked_tasks: { type: integer }
+    pending_approvals: { type: integer }
+    failing_tests: { type: integer }
+    score: { type: string, enum: [low, medium, high] }
+    top_hits:
+      type: array
+      items:
+        type: object
+        properties:
+          path: { type: string }
+          line: { type: integer }
+          text: { type: string }
+          kind: { type: string }
+
+tools:
+  research:
+    description: Local docs/reports search (no network)
+    args: [query, limit]
+  world_state.read:
+    description: Summarize projects/<name>/.forge/state.yaml
+
+notes:
+  - Probes are local-only; orchestrator refresh_light runs debt.scan only (no pytest).
+  - ContextManager injects ## Health / ## Debt when YAML artifacts exist.

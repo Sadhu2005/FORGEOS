@@ -2,6 +2,20 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [0.9.0] — 2026-08-08
+
+### Added
+
+- Phase 8 engineering intelligence: health probe, debt scan, local research
+- Tools: `research`, `world_state.read`
+- Context `## Health` / `## Debt`; orchestrator light debt refresh
+- CLI: `forgeos intelligence health|debt|research`
+- [docs/PHASE8.md](docs/PHASE8.md); [docs/schemas/intelligence.schema.yaml](docs/schemas/intelligence.schema.yaml)
+
+### Changed
+
+- Package version `0.9.0`
+
 ## [0.8.0] — 2026-08-08
 
 ### Added

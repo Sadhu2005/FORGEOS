@@ -45,6 +45,8 @@ class ToolRegistry:
         self.register("testing.run", self._testing_run)
         self.register("docker.compose_config", self._docker_compose_config)
         self.register("docker.compose_up", self._docker_compose_up)
+        self.register("research", self._research)
+        self.register("world_state.read", self._world_state_read)
 
     def register(self, name: str, handler: Handler) -> None:
         self._handlers[name] = handler
@@ -145,6 +147,37 @@ class ToolRegistry:
         compose_file = str(action.get("compose_file", "docker/docker-compose.yml"))
         return self.docker.compose_up(compose_file=compose_file)
 
+    def _research(self, action: dict[str, Any]) -> ToolResult:
+        from forgeos.intelligence.research import search as research_search
+
+        query = action.get("query")
+        if not query:
+            return ToolResult(False, "research", "missing action.query")
+        limit = int(action.get("limit", 10))
+        hits = research_search(self.project_root, str(query), limit=limit)
+        return ToolResult(
+            True,
+            "research",
+            f"{len(hits)} hits",
+            data={"hits": hits},
+        )
+
+    def _world_state_read(self, action: dict[str, Any]) -> ToolResult:
+        from forgeos.core import world_state as ws
+
+        try:
+            state = ws.load(self.project_root)
+        except FileNotFoundError as exc:
+            return ToolResult(False, "world_state.read", str(exc))
+        summary = {
+            "project": state.get("project"),
+            "tasks": state.get("tasks"),
+            "tests": state.get("tests"),
+            "environment": state.get("environment"),
+            "repository": state.get("repository"),
+        }
+        return ToolResult(True, "world_state.read", "loaded", data=summary)
+
 
 def default_tool_ids() -> list[str]:
     """Tool ids registered by ToolRegistry defaults (no project needed)."""
@@ -165,5 +198,7 @@ def default_tool_ids() -> list[str]:
             "testing.run",
             "docker.compose_config",
             "docker.compose_up",
+            "research",
+            "world_state.read",
         ]
     )

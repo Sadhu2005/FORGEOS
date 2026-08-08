@@ -27,6 +27,9 @@ from forgeos.safety.approval import ApprovalStore
 from forgeos.safety.audit import AuditLog
 from forgeos.tools.git import GitTool
 from forgeos.tools.registry import default_tool_ids
+from forgeos.intelligence.debt import debt_path, scan as debt_scan
+from forgeos.intelligence.health import health_path, probe as health_probe
+from forgeos.intelligence.research import search as research_search
 
 
 def _workspace() -> Path:
@@ -489,6 +492,62 @@ def cmd_checkpoint_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_intelligence_health(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    report = health_probe(project)
+    tests = report.get("tests") or {}
+    env = report.get("environment") or {}
+    print(f"health: {health_path(project)}")
+    print(
+        f"tests: total={tests.get('total', 0)} passing={tests.get('passing', 0)} "
+        f"failing={tests.get('failing', 0)}"
+    )
+    print(
+        f"env: python={env.get('python')} docker={env.get('docker')} "
+        f"compose_ok={env.get('compose_config_ok')}"
+    )
+    for note in report.get("notes") or []:
+        print(f"note: {note}")
+    return 0
+
+
+def cmd_intelligence_debt(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    report = debt_scan(project)
+    print(f"debt: {debt_path(project)}")
+    print(
+        f"score={report.get('score')} todo={report.get('todo_count')} "
+        f"fixme={report.get('fixme_count')} blocked={report.get('blocked_tasks')} "
+        f"approvals={report.get('pending_approvals')} failing_tests={report.get('failing_tests')}"
+    )
+    for hit in (report.get("top_hits") or [])[:10]:
+        print(f"  {hit.get('path')}:{hit.get('line')} {hit.get('text')}")
+    return 0
+
+
+def cmd_intelligence_research(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    hits = research_search(project, args.query, limit=int(args.limit))
+    if not hits:
+        print("(no hits)")
+        return 0
+    for hit in hits:
+        print(f"{hit.get('path')}:{hit.get('line')}\t{hit.get('text')}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forgeos",
@@ -632,6 +691,23 @@ def build_parser() -> argparse.ArgumentParser:
     p_ckpt_list.add_argument("name", help="project name")
     p_ckpt_list.set_defaults(func=cmd_checkpoint_list)
 
+    p_intel = sub.add_parser("intelligence", help="health, debt, and local research")
+    intel_sub = p_intel.add_subparsers(dest="intelligence_command")
+
+    p_intel_health = intel_sub.add_parser("health", help="probe tests/env/compose")
+    p_intel_health.add_argument("name", help="project name")
+    p_intel_health.set_defaults(func=cmd_intelligence_health)
+
+    p_intel_debt = intel_sub.add_parser("debt", help="scan TODO/blocked/approvals debt")
+    p_intel_debt.add_argument("name", help="project name")
+    p_intel_debt.set_defaults(func=cmd_intelligence_debt)
+
+    p_intel_research = intel_sub.add_parser("research", help="search local docs/reports")
+    p_intel_research.add_argument("name", help="project name")
+    p_intel_research.add_argument("--query", required=True, help="search text")
+    p_intel_research.add_argument("--limit", type=int, default=10, help="max hits (default: 10)")
+    p_intel_research.set_defaults(func=cmd_intelligence_research)
+
     return parser
 
 
@@ -658,6 +734,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "checkpoint" and not getattr(args, "checkpoint_command", None):
         parser.parse_args(["checkpoint", "--help"])
+        return 0
+    if args.command == "intelligence" and not getattr(args, "intelligence_command", None):
+        parser.parse_args(["intelligence", "--help"])
         return 0
     return int(args.func(args))
 
