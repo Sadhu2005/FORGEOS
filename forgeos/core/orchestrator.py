@@ -177,6 +177,7 @@ class Orchestrator:
                 force=force,
                 template=plan_template,
                 project_root=self.project,
+                roles_dir=self.workspace / "roles",
             )
 
         self._with_llm_guard(_plan)
