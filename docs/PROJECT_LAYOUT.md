@@ -64,15 +64,15 @@ FORGEOS/                          # this repository (engine)
 | Tree | Who owns it | Phase |
 |---|---|---|
 | `forgeos/`, `docs/`, `roles/`, `benchmarks/` | Engine | Phase 0.5+ |
-| `projects/<app>/frontend|backend|…` | Managed app (roles write here) | When a goal creates an app |
+| `projects/<app>/frontend|backend|…` | Managed app (roles write here) | When a goal creates an app; **Phase 10:** `forgeos init <name> --scaffold` writes backend-only FastAPI `/health` + `docker/` + docs stubs |
 
-Managed sandboxes may also live at a configurable absolute path. The engine never treats its own `docs/` pack as an application monorepo. Do **not** scaffold Next.js/FastAPI under the engine root; create those only inside `projects/<app>/`.
+Managed sandboxes may also live at a configurable absolute path. The engine never treats its own `docs/` pack as an application monorepo. Do **not** scaffold Next.js/FastAPI under the engine root; create those only inside `projects/<app>/` (use `init --scaffold` for the Phase 10 health demo).
 
 ## Defaults
 
-- **Frontend:** Next.js  
-- **Backend:** FastAPI mounted at `/api/v1`  
-- **Database:** PostgreSQL (+ Redis when Architect requires caching/sessions)  
+- **Frontend:** Next.js (optional; not required for Phase 10 health demo)  
+- **Backend:** FastAPI (`/health` in Phase 10 scaffold; `/api/v1` for fuller apps)  
+- **Database:** PostgreSQL (+ Redis when Architect requires caching/sessions) — **not** required for Phase 10 `/health`  
 - **Local runtime:** Docker Compose — see [DOCKER.md](DOCKER.md)
 
 ## `.forge/` runtime
@@ -80,7 +80,10 @@ Managed sandboxes may also live at a configurable absolute path. The engine neve
 | Item | Purpose |
 |---|---|
 | `state.yaml` | World state snapshot |
-| `reports/` | QA and task reports |
-| (later) task graph DB / audit log | Replayability and evidence |
+| `tasks.yaml` | Task graph (planner dual-writes SQLite memory) |
+| `reports/` | QA and task reports + evidence YAML |
+| `memory.sqlite` | Phase 6+ decisions/events mirror |
+| `approvals/` | Phase 7 pending/approved tickets |
+| `audit.jsonl` | Phase 7 safety audit |
 
-Application code must not depend on `.forge/` at runtime; it is operator/engine metadata.
+Application code must not depend on `.forge/` at runtime; it is operator/engine metadata. Scaffolded apps still sync memory on `plan` / `run` like any other project.

@@ -2,6 +2,20 @@
 
 All notable changes to FORGEOS are documented here.
 
+## [1.1.0] — 2026-08-08
+
+### Added
+
+- Phase 10 managed-app demo: `forgeos init --scaffold` FastAPI `/health` tree
+- Multi-role `fastapi-health` planner template (`--template` / goal detect)
+- Verifier: `pytest_pass`, `http_get:/path`; `testing.run` `cwd`/`path`
+- Real `docker.compose_up` (`up -d`) with optional action `dry_run`
+- [docs/PHASE10.md](docs/PHASE10.md), [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md), `scripts/demo_fastapi_health.ps1`
+
+### Changed
+
+- Package version `1.1.0`
+
 ## [1.0.0] — 2026-08-08
 
 ### Added

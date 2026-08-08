@@ -13,8 +13,9 @@
 | 7 Safety | `feature/phase7-safety` | `v0.8.0` | **Shipped** — see [PHASE7.md](PHASE7.md) |
 | 8 Eng. intelligence | `feature/phase8-engineering-intelligence` | `v0.9.0` | **Shipped** — see [PHASE8.md](PHASE8.md) |
 | 9 Dashboard | `feature/phase9-dashboard` | `v1.0.0` | **Shipped** — see [PHASE9.md](PHASE9.md) |
+| 10 Managed app | `feature/phase10-managed-app` | `v1.1.0` | **Shipped** — see [PHASE10.md](PHASE10.md) |
 
-`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`. Phase 4 ships as `v0.5.0` with freeze branch `release/0.5.0`. Phase 5 ships as `v0.6.0` with freeze branch `release/0.6.0`. Phase 6 ships as `v0.7.0` with freeze branch `release/0.7.0`. Phase 7 ships as `v0.8.0` with freeze branch `release/0.8.0`. Phase 8 ships as `v0.9.0` with freeze branch `release/0.9.0`. Phase 9 ships as `v1.0.0` with freeze branch `release/1.0.0`.
+`release/0.1.0` stays pinned at the `v0.1.0` freeze. Patch `v0.1.1` lives on `main` only (no new release branch). Phase 1 ships as `v0.2.0` with freeze branch `release/0.2.0`. Phase 2 ships as `v0.3.0` with freeze branch `release/0.3.0`. Phase 3 ships as `v0.4.0` with freeze branch `release/0.4.0`. Phase 4 ships as `v0.5.0` with freeze branch `release/0.5.0`. Phase 5 ships as `v0.6.0` with freeze branch `release/0.6.0`. Phase 6 ships as `v0.7.0` with freeze branch `release/0.7.0`. Phase 7 ships as `v0.8.0` with freeze branch `release/0.8.0`. Phase 8 ships as `v0.9.0` with freeze branch `release/0.9.0`. Phase 9 ships as `v1.0.0` with freeze branch `release/1.0.0`. Phase 10 ships as `v1.1.0` with freeze branch `release/1.1.0`.
 
 ## Phase 1 — V1 CLI Definition of Done
 
@@ -29,8 +30,8 @@ Phase 1 is complete when all of the following are true:
 7. **Tests:** At least unit tests for world-state load/save and role loader.
 8. **Docs:** CHANGELOG updated; this file’s Phase 1 row can be marked shipped when tagging `v0.2.0`.
 
-Demo goal (stretch inside Phase 1 or early Phase 2):  
-`forge "Create a Python FastAPI project with a /health endpoint and tests"` — full autonomy is **not** required for Phase 1 exit; the stub loop + schemas are.
+Demo goal (stretch inside Phase 1 or early Phase 2; **shipped in Phase 10**):  
+`forge "Create a Python FastAPI project with a /health endpoint and tests"` — see [PHASE10.md](PHASE10.md) and [demo/FASTAPI_HEALTH.md](demo/FASTAPI_HEALTH.md). Full autonomy was **not** required for Phase 1 exit; the stub loop + schemas were.
 
 ## Human gate
 
