@@ -30,6 +30,7 @@ from forgeos.tools.registry import default_tool_ids
 from forgeos.intelligence.debt import debt_path, scan as debt_scan
 from forgeos.intelligence.health import health_path, probe as health_probe
 from forgeos.intelligence.research import search as research_search
+from forgeos.dashboard.server import DEFAULT_HOST, DEFAULT_PORT, serve as serve_dashboard
 
 
 def _workspace() -> Path:
@@ -548,6 +549,27 @@ def cmd_intelligence_research(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    host = args.host
+    if host not in ("127.0.0.1", "localhost", "::1") and not args.allow_remote:
+        print(
+            f"error: refusing to bind {host!r}; use 127.0.0.1 or pass --allow-remote",
+            file=sys.stderr,
+        )
+        return 1
+    try:
+        serve_dashboard(
+            _workspace(),
+            host=host,
+            port=int(args.port),
+            allow_remote=bool(args.allow_remote),
+        )
+    except OSError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forgeos",
@@ -707,6 +729,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_intel_research.add_argument("--query", required=True, help="search text")
     p_intel_research.add_argument("--limit", type=int, default=10, help="max hits (default: 10)")
     p_intel_research.set_defaults(func=cmd_intelligence_research)
+
+    p_dash = sub.add_parser("dashboard", help="serve local engine dashboard")
+    p_dash.add_argument("--host", default=DEFAULT_HOST, help=f"bind host (default: {DEFAULT_HOST})")
+    p_dash.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"port (default: {DEFAULT_PORT})")
+    p_dash.add_argument(
+        "--allow-remote",
+        action="store_true",
+        help="allow non-loopback bind (explicit opt-in)",
+    )
+    p_dash.set_defaults(func=cmd_dashboard)
 
     return parser
 
