@@ -83,22 +83,25 @@ def fastapi_health_full_template(goal: str) -> list[Task]:
         ),
         Task(
             id="be-001",
-            description="Implement FastAPI /health endpoint",
+            description="Implement FastAPI /health and /api/v1/ping",
             status="PROPOSED",
             role="backend",
             priority=20,
             dependencies=["arch-001"],
-            verification=["file exists", "contains:health"],
+            verification=["file exists", "contains:health", "contains:/api/v1/ping"],
             action={
                 "tool": "filesystem.write",
                 "path": "backend/app/main.py",
                 "content": (
-                    '"""Minimal FastAPI app with /health."""\n\n'
+                    '"""Minimal FastAPI app with /health and /api/v1/ping."""\n\n'
                     "from fastapi import FastAPI\n\n"
                     'app = FastAPI(title="FORGEOS managed demo")\n\n\n'
                     '@app.get("/health")\n'
                     "def health() -> dict[str, str]:\n"
-                    '    return {"status": "ok"}\n'
+                    '    return {"status": "ok"}\n\n\n'
+                    '@app.get("/api/v1/ping")\n'
+                    "def ping() -> dict[str, str]:\n"
+                    '    return {"ok": "true", "api": "v1"}\n'
                 ),
             },
         ),

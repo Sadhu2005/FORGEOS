@@ -1,10 +1,10 @@
-"""Minimal FastAPI /health managed-app scaffold under a project root."""
+"""Minimal FastAPI /health + /api/v1/ping managed-app scaffold under a project root."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-MAIN_PY = '''"""Minimal FastAPI app with /health."""
+MAIN_PY = '''"""Minimal FastAPI app with /health and /api/v1/ping."""
 
 from fastapi import FastAPI
 
@@ -13,15 +13,24 @@ app = FastAPI(title="FORGEOS managed demo")
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"service": "FORGEOS managed demo", "health": "/health"}
+    return {
+        "service": "FORGEOS managed demo",
+        "health": "/health",
+        "api": "/api/v1/ping",
+    }
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/v1/ping")
+def ping() -> dict[str, str]:
+    return {"ok": "true", "api": "v1"}
 '''
 
-TEST_HEALTH = '''"""Health endpoint tests."""
+TEST_HEALTH = '''"""Health and API ping tests."""
 
 from fastapi.testclient import TestClient
 
@@ -40,6 +49,13 @@ def test_root() -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert response.json()["health"] == "/health"
+
+
+def test_api_ping() -> None:
+    response = client.get("/api/v1/ping")
+    assert response.status_code == 200
+    assert response.json()["ok"] == "true"
+    assert response.json()["api"] == "v1"
 '''
 
 # Isolate managed-app pytest from the FORGEOS engine pyproject.toml
@@ -83,7 +99,7 @@ Managed FastAPI health demo scaffolded by FORGEOS.
 
 ## Stack
 
-- FastAPI backend with `GET /health`
+- FastAPI backend with `GET /health` and `GET /api/v1/ping`
 - pytest + httpx TestClient
 - Docker Compose (backend-only)
 
@@ -95,6 +111,12 @@ API_MD = """# API
 ## GET /health
 
 Returns JSON `{"status": "ok"}` when the service is up.
+
+## GET /api/v1/ping
+
+Versioned API stub. Returns `{"ok": "true", "api": "v1"}`.
+
+See FORGEOS [API_VERSIONING.md](https://github.com/Sadhu2005/FORGEOS/blob/main/docs/API_VERSIONING.md) for `/api/v1` conventions.
 """
 
 README = """# {name}
@@ -114,7 +136,8 @@ pytest -q
 ```bash
 cd backend
 uvicorn app.main:app --reload --port 8000
-# open http://127.0.0.1:8000/health  (root / only points at /health)
+# http://127.0.0.1:8000/health
+# http://127.0.0.1:8000/api/v1/ping
 ```
 
 ## Docker Compose
@@ -122,6 +145,7 @@ uvicorn app.main:app --reload --port 8000
 ```bash
 docker compose -f docker/docker-compose.yml up -d --build
 curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/api/v1/ping
 ```
 """
 
@@ -129,7 +153,7 @@ CHANGELOG = """# Changelog
 
 ## 0.1.0
 
-- Scaffolded FastAPI `/health` demo via `forgeos init --scaffold`.
+- Scaffolded FastAPI `/health` + `/api/v1/ping` demo via `forgeos init --scaffold`.
 """
 
 BACKEND_INIT = '"""Backend package."""\n'
