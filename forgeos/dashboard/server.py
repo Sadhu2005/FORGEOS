@@ -13,8 +13,9 @@ from forgeos.core import world_state as ws
 from forgeos.dashboard import actions, views
 
 DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 8765
-
+# Avoid common Windows Hyper-V excluded ranges (~8571–9270).
+DEFAULT_PORT = 18080
+FALLBACK_PORTS = (18080, 19090, 28080, 34567)
 
 class DashboardHandler(BaseHTTPRequestHandler):
     workspace: Path = Path.cwd()
@@ -280,8 +281,32 @@ def serve(
             f"refusing to bind {host!r}; use loopback or pass allow_remote=True"
         )
     ws_path = (workspace or Path.cwd()).resolve()
-    httpd = make_server(ws_path, host=host, port=port)
-    print(f"FORGEOS dashboard: http://{host}:{port}/")
+    candidates = [port]
+    for alt in FALLBACK_PORTS:
+        if alt not in candidates:
+            candidates.append(alt)
+
+    last_err: OSError | None = None
+    httpd = None
+    bound_port = port
+    for candidate in candidates:
+        try:
+            httpd = make_server(ws_path, host=host, port=candidate)
+            bound_port = candidate
+            break
+        except OSError as exc:
+            last_err = exc
+            continue
+    if httpd is None:
+        assert last_err is not None
+        raise OSError(
+            f"{last_err}; tried ports {candidates}. "
+            "On Windows, Hyper-V often reserves 8571–9270 — use --port 18080"
+        ) from last_err
+
+    if bound_port != port:
+        print(f"note: port {port} unavailable; using {bound_port}")
+    print(f"FORGEOS dashboard: http://{host}:{bound_port}/")
     print(f"workspace: {ws_path}")
     try:
         httpd.serve_forever()

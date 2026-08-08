@@ -28,6 +28,7 @@ System design lives in `docs/` (contracts for later engine phases):
 | [docs/PHASE8.md](docs/PHASE8.md) | Phase 8 engineering intelligence what shipped / deferred |
 | [docs/PHASE9.md](docs/PHASE9.md) | Phase 9 dashboard what shipped / deferred |
 | [docs/PHASE10.md](docs/PHASE10.md) | Phase 10 managed FastAPI demo what shipped / deferred |
+| [docs/PHASE11.md](docs/PHASE11.md) | Phase 11 draft — Ollama + richer backend |
 | [docs/demo/FASTAPI_HEALTH.md](docs/demo/FASTAPI_HEALTH.md) | Step-by-step FastAPI `/health` demo |
 | [docs/PHASES.md](docs/PHASES.md) | Phase 0–10 map, branches, DoD notes |
 | [docs/ROLES.md](docs/ROLES.md) | Eleven role policies (human-readable) |
@@ -132,7 +133,7 @@ forgeos intelligence research demo --query "architecture"
 
 ```powershell
 forgeos dashboard
-# open http://127.0.0.1:8765/
+# open http://127.0.0.1:18080/
 ```
 
 ## Phase 10 — Managed FastAPI demo

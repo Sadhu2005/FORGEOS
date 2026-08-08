@@ -46,6 +46,8 @@ class DockerTool:
             cwd=str(self.project_root),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         return ToolResult(
             ok=completed.returncode == 0,
@@ -88,6 +90,8 @@ class DockerTool:
             cwd=str(self.project_root),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         detail = "dry-run ok" if dry_run and completed.returncode == 0 else f"exit={completed.returncode}"
         return ToolResult(
