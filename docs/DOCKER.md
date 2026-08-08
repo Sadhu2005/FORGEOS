@@ -2,6 +2,8 @@
 
 FORGEOS treats **Docker Compose as the default local runtime** for managed application services. The LLM runtime stays on the host.
 
+**Scope before Phase 1:** The FORGEOS engine repo does **not** require its own `docker-compose.yml` for core development. Ollama and the orchestrator run on the **host**. Compose files belong under each managed project’s `docker/` tree when that project is created — not as a Phase 0.5 / Phase 1 engine prerequisite.
+
 ## Topology
 
 ```text

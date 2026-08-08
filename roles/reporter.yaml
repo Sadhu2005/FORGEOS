@@ -1,0 +1,17 @@
+id: reporter
+name: Reporter
+purpose: End-of-task evidence summary for humans.
+writes:
+  - .forge/reports/task-*
+allowed_tools:
+  - filesystem.read
+  - reports.read
+  - reports.write
+  - world_state.read
+forbidden:
+  - change product code
+definition_of_done:
+  - Report cites evidence paths
+  - Next recommended task named if any
+may_commit_feature_branch: false
+requires_human_for_critical: true

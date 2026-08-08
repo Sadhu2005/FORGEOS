@@ -1,0 +1,43 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: FORGEOSWorldState
+description: Ground-truth project state under .forge/state.yaml
+type: object
+required: [project, repository, tasks]
+properties:
+  project:
+    type: object
+    required: [name, phase, status]
+    properties:
+      name: { type: string }
+      phase: { type: string }
+      status: { type: string, enum: [active, paused, completed, blocked] }
+  repository:
+    type: object
+    properties:
+      branch: { type: string }
+      clean: { type: boolean }
+      last_commit: { type: string }
+  architecture:
+    type: object
+    additionalProperties: { type: string }
+  tasks:
+    type: object
+    properties:
+      completed: { type: integer, minimum: 0 }
+      pending: { type: integer, minimum: 0 }
+      blocked: { type: integer, minimum: 0 }
+  tests:
+    type: object
+    properties:
+      total: { type: integer, minimum: 0 }
+      passing: { type: integer, minimum: 0 }
+      failing: { type: integer, minimum: 0 }
+  environment:
+    type: object
+    additionalProperties: true
+  current_problem:
+    type: object
+    properties:
+      type: { type: string }
+      severity: { type: string, enum: [low, medium, high, critical] }
+additionalProperties: true

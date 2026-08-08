@@ -1,0 +1,25 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: FORGEOSRolePolicy
+description: Machine-readable role policy (not a concurrent agent)
+type: object
+required: [id, name, purpose, writes, allowed_tools, forbidden, definition_of_done]
+properties:
+  id: { type: string, pattern: "^[a-z][a-z0-9_]*$" }
+  name: { type: string }
+  purpose: { type: string }
+  writes:
+    type: array
+    items: { type: string }
+    description: Path globs relative to managed project root
+  allowed_tools:
+    type: array
+    items: { type: string }
+  forbidden:
+    type: array
+    items: { type: string }
+  definition_of_done:
+    type: array
+    items: { type: string }
+  may_commit_feature_branch: { type: boolean, default: false }
+  requires_human_for_critical: { type: boolean, default: true }
+additionalProperties: true

@@ -1,0 +1,28 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: FORGEOSDecision
+description: Recorded engineering decision with evidence
+type: object
+required: [problem, options, chosen, confidence, reason]
+properties:
+  id: { type: string }
+  problem: { type: string }
+  options:
+    type: array
+    items: { type: string }
+    minItems: 1
+  evidence:
+    type: array
+    items: { type: string }
+  constraints:
+    type: array
+    items: { type: string }
+  chosen: { type: string }
+  confidence:
+    type: string
+    enum: [HIGH, MEDIUM, LOW]
+  risk:
+    type: string
+    enum: [low, medium, high, critical]
+  reason: { type: string }
+  timestamp: { type: string, format: date-time }
+additionalProperties: true

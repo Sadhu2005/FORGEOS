@@ -1,0 +1,14 @@
+id: ui_ux
+name: UI/UX
+purpose: Pages, components, design system, navigation, responsive design, accessibility specs.
+writes:
+  - design/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+forbidden:
+  - implement React or Next.js application code
+definition_of_done:
+  - Specs sufficient for Frontend without inventing major UX
+may_commit_feature_branch: true
+requires_human_for_critical: true

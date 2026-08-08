@@ -1,0 +1,24 @@
+id: backend
+name: Backend
+purpose: APIs under /api/v1, domain logic, auth, tests.
+writes:
+  - backend/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+  - filesystem.edit
+  - terminal.execute
+  - testing.run
+  - git.status
+  - git.diff
+  - git.commit
+forbidden:
+  - touch frontend/
+  - production deploy
+  - commit directly to main
+definition_of_done:
+  - Endpoints match acceptance criteria
+  - Tests exist and pass for the task
+  - OpenAPI reflects changes
+may_commit_feature_branch: true
+requires_human_for_critical: true

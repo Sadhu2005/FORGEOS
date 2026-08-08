@@ -103,9 +103,14 @@ Not: entire repo + full chat history + all logs.
 - Feature branch merged (or ready) per git rules  
 - Reporter artifact stored under `.forge/reports/`  
 
+## Phase 1 V1 CLI (engine)
+
+Phase exit criteria for the FORGEOS engine CLI live in [PHASES.md](PHASES.md) (Phase 1 Definition of Done). This workflow doc describes the **managed-project** role pipeline; Phase 1 implements the loop that will later drive that pipeline.
+
 ## See also
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — system loop  
 - [ROLES.md](ROLES.md) — permissions per role  
 - [DOCKER.md](DOCKER.md) — local runtime  
 - [API_VERSIONING.md](API_VERSIONING.md) — `/api/v1`  
+- [PHASES.md](PHASES.md) — phase map and Phase 1 DoD  

@@ -14,6 +14,8 @@ Role =
 
 The orchestrator activates exactly one role per LLM turn.
 
+**Canonical machine config:** [`roles/*.yaml`](../roles/) at the repository root (validated by [schemas/role_policy.schema.yaml](schemas/role_policy.schema.yaml)). This markdown file is the human-readable companion; when they disagree, update both in the same change.
+
 ## Pipeline
 
 ```text
@@ -270,4 +272,4 @@ Next task: Profile system
 
 ## Implementation note
 
-Phase 1+ encodes these policies in code (e.g. `roles/` package). Until then, this document is the contract.
+Phase 1+ loads [`roles/*.yaml`](../roles/) and encodes enforcement in `forgeos.roles.loader` / the orchestrator. This document remains the human-readable contract.

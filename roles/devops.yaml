@@ -1,0 +1,24 @@
+id: devops
+name: DevOps
+purpose: Dockerfiles, Compose, CI, env templates, health checks; local deploy first.
+writes:
+  - docker/**
+  - .env.example
+  - .github/workflows/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+  - docker.compose
+  - terminal.execute
+  - git.status
+  - git.diff
+  - git.commit
+forbidden:
+  - production or cloud deploy without CRITICAL human approval
+  - commit directly to main
+definition_of_done:
+  - Compose validates
+  - Healthchecks where applicable
+  - Deployment notes handed to Documentation
+may_commit_feature_branch: true
+requires_human_for_critical: true

@@ -1,0 +1,20 @@
+id: documentation
+name: Documentation
+purpose: Keep living docs accurate after material changes.
+writes:
+  - README.md
+  - CHANGELOG.md
+  - docs/**
+allowed_tools:
+  - filesystem.read
+  - filesystem.write
+  - git.status
+  - git.diff
+  - git.commit
+forbidden:
+  - silent product code edits without a Documentation-scoped task
+definition_of_done:
+  - Docs match current behavior
+  - CHANGELOG entry for user-visible changes
+may_commit_feature_branch: true
+requires_human_for_critical: true
