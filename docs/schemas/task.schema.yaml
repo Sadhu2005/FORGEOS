@@ -1,0 +1,44 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: FORGEOSTask
+description: Single node in the task graph
+type: object
+required: [id, description, status, role]
+properties:
+  id: { type: string }
+  description: { type: string }
+  priority: { type: integer }
+  dependencies:
+    type: array
+    items: { type: string }
+  status:
+    type: string
+    enum:
+      - PROPOSED
+      - READY
+      - RUNNING
+      - WAITING
+      - BLOCKED
+      - FAILED
+      - VERIFYING
+      - COMPLETED
+      - REJECTED
+      - CANCELLED
+  role:
+    type: string
+    description: Role policy id (e.g. ceo, frontend, qa)
+  risk:
+    type: string
+    enum: [safe, low, medium, high, critical]
+  estimated_cost: { type: number }
+  verification:
+    type: array
+    items: { type: string }
+    description: Definition of Done checklist items
+  artifacts:
+    type: array
+    items: { type: string }
+  rollback: { type: string }
+  evidence:
+    type: array
+    items: { type: string }
+additionalProperties: true
