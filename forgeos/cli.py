@@ -23,6 +23,9 @@ from forgeos.memory.database import memory_path
 from forgeos.memory.repository import Repository
 from forgeos.planning.task_graph import TaskGraph
 from forgeos.roles.loader import load_role
+from forgeos.safety.approval import ApprovalStore
+from forgeos.safety.audit import AuditLog
+from forgeos.tools.git import GitTool
 from forgeos.tools.registry import default_tool_ids
 
 
@@ -357,6 +360,135 @@ def cmd_memory_sync(args: argparse.Namespace) -> int:
     return 0
 
 
+def _unblock_task(project: Path, task_id: str) -> None:
+    graph = TaskGraph.load(ws.tasks_path(project))
+    task = graph.get(task_id)
+    if task is not None and task.status == "BLOCKED":
+        task.status = "READY"
+        task.last_error = ""
+        graph.save(ws.tasks_path(project))
+
+
+def cmd_safety_pending(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    pending = ApprovalStore(project).list_pending()
+    if not pending:
+        print("(no pending approvals)")
+        return 0
+    for ticket in pending:
+        print(
+            f"{ticket.get('id')}\ttask={ticket.get('task_id')}\t"
+            f"tool={ticket.get('tool')}\trisk={ticket.get('risk')}\t{ticket.get('reason')}"
+        )
+    return 0
+
+
+def cmd_safety_approve(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    store = ApprovalStore(project)
+    try:
+        ticket = store.approve(args.id)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    _unblock_task(project, str(ticket.get("task_id") or ""))
+    AuditLog(project).append(
+        "approval",
+        f"approved {ticket['id']}",
+        task_id=str(ticket.get("task_id") or ""),
+        payload={"approval_id": ticket["id"], "status": "approved"},
+    )
+    print(f"approved: {ticket['id']}")
+    print(f"task: {ticket.get('task_id')} -> READY")
+    return 0
+
+
+def cmd_safety_reject(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    store = ApprovalStore(project)
+    try:
+        ticket = store.reject(args.id)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    AuditLog(project).append(
+        "approval",
+        f"rejected {ticket['id']}",
+        task_id=str(ticket.get("task_id") or ""),
+        payload={"approval_id": ticket["id"], "status": "rejected"},
+    )
+    print(f"rejected: {ticket['id']}")
+    return 0
+
+
+def cmd_safety_audit(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    log = AuditLog(project)
+    rows = log.read_lines(limit=int(args.limit))
+    if not rows:
+        print("(no audit entries)")
+        return 0
+    print(f"audit: {log.path}")
+    for row in rows:
+        print(
+            f"{row.get('timestamp')}\t{row.get('kind')}\t"
+            f"task={row.get('task_id') or '-'}\t{row.get('message')}"
+        )
+    return 0
+
+
+def cmd_checkpoint_create(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    result = GitTool(project).checkpoint(message=args.message or "")
+    AuditLog(project).append(
+        "checkpoint",
+        result.detail,
+        payload=dict(result.data or {}),
+    )
+    print(f"checkpoint: {result.detail}")
+    if result.path:
+        print(f"path: {result.path}")
+    return 0 if result.ok else 1
+
+
+def cmd_checkpoint_list(args: argparse.Namespace) -> int:
+    workspace = _workspace()
+    project = ws.project_root(workspace, args.name)
+    if not ws.state_path(project).exists():
+        print(f"error: project not found; run: forgeos init {args.name}", file=sys.stderr)
+        return 1
+    entries = GitTool(project).list_checkpoints()
+    if not entries:
+        print("(no checkpoints)")
+        return 0
+    for entry in entries:
+        print(
+            f"{entry.get('id')}\tsha={entry.get('sha') or '-'}\t"
+            f"tag={entry.get('tag') or '-'}\t{entry.get('message')}"
+        )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forgeos",
@@ -466,6 +598,40 @@ def build_parser() -> argparse.ArgumentParser:
     p_mem_sync.add_argument("name", help="project name")
     p_mem_sync.set_defaults(func=cmd_memory_sync)
 
+    p_safety = sub.add_parser("safety", help="approvals and audit")
+    safety_sub = p_safety.add_subparsers(dest="safety_command")
+
+    p_safety_pending = safety_sub.add_parser("pending", help="list pending approvals")
+    p_safety_pending.add_argument("name", help="project name")
+    p_safety_pending.set_defaults(func=cmd_safety_pending)
+
+    p_safety_approve = safety_sub.add_parser("approve", help="approve a pending ticket")
+    p_safety_approve.add_argument("name", help="project name")
+    p_safety_approve.add_argument("--id", required=True, help="approval id")
+    p_safety_approve.set_defaults(func=cmd_safety_approve)
+
+    p_safety_reject = safety_sub.add_parser("reject", help="reject a pending ticket")
+    p_safety_reject.add_argument("name", help="project name")
+    p_safety_reject.add_argument("--id", required=True, help="approval id")
+    p_safety_reject.set_defaults(func=cmd_safety_reject)
+
+    p_safety_audit = safety_sub.add_parser("audit", help="show recent audit JSONL entries")
+    p_safety_audit.add_argument("name", help="project name")
+    p_safety_audit.add_argument("--limit", type=int, default=50, help="max rows (default: 50)")
+    p_safety_audit.set_defaults(func=cmd_safety_audit)
+
+    p_checkpoint = sub.add_parser("checkpoint", help="git safety checkpoints")
+    checkpoint_sub = p_checkpoint.add_subparsers(dest="checkpoint_command")
+
+    p_ckpt_create = checkpoint_sub.add_parser("create", help="record HEAD checkpoint")
+    p_ckpt_create.add_argument("name", help="project name")
+    p_ckpt_create.add_argument("--message", default="", help="checkpoint message")
+    p_ckpt_create.set_defaults(func=cmd_checkpoint_create)
+
+    p_ckpt_list = checkpoint_sub.add_parser("list", help="list recorded checkpoints")
+    p_ckpt_list.add_argument("name", help="project name")
+    p_ckpt_list.set_defaults(func=cmd_checkpoint_list)
+
     return parser
 
 
@@ -486,6 +652,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "memory" and not getattr(args, "memory_command", None):
         parser.parse_args(["memory", "--help"])
+        return 0
+    if args.command == "safety" and not getattr(args, "safety_command", None):
+        parser.parse_args(["safety", "--help"])
+        return 0
+    if args.command == "checkpoint" and not getattr(args, "checkpoint_command", None):
+        parser.parse_args(["checkpoint", "--help"])
         return 0
     return int(args.func(args))
 
