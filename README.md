@@ -11,7 +11,52 @@ policies**, not concurrent processes.
 
 ## Architecture
 
-System design lives in `docs/` (contracts for later engine phases):
+```mermaid
+flowchart TB
+  subgraph Human["Human"]
+    CLI["CLI · forgeos"]
+    Dash["Dashboard · :18080"]
+  end
+
+  subgraph Engine["FORGEOS engine · host"]
+    Orch["Orchestrator"]
+    Plan["Planner · TaskGraph"]
+    Roles["Role policies"]
+    Ctx["Context · Model router"]
+    LLM["Local LLM · Ollama<br/>one model at a time"]
+    Tools["Tool engine"]
+    Safe["Safety · approvals / audit"]
+    Mem["Memory · SQLite + YAML"]
+    Ver["Observer · Verifier"]
+  end
+
+  subgraph Managed["Managed app · projects/name"]
+    App["FastAPI /health · tests"]
+    Compose["Docker Compose"]
+    Forge[".forge/ state · reports"]
+  end
+
+  CLI --> Orch
+  Dash --> Orch
+  Orch --> Plan
+  Orch --> Roles
+  Orch --> Ctx
+  Ctx --> LLM
+  Orch --> Safe
+  Safe -->|approve critical| Tools
+  Orch --> Tools
+  Tools --> App
+  Tools --> Compose
+  Tools --> Forge
+  Tools --> Ver
+  Ver --> Mem
+  Mem --> Orch
+  Plan --> Orch
+```
+
+**Loop:** PLAN → ACT → OBSERVE → VERIFY → MEMORIZE → REPLAN (human gate for critical tools like `docker.compose_up`).
+
+System design lives in `docs/`:
 
 | Document | Topic |
 |---|---|
